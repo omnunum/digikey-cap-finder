@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Best Capacitors from Digi-Key</title>
+    <style>
+        table.main-table, .ru-table {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: fixed; /* Force fixed layout so columns line up */
+        }
+        table.main-table th, table.main-table td,
+        .ru-table th, .ru-table td {
+            border: 1px solid #999;
+            padding: 6px;
+            text-align: center;
+        }
+        table.main-table th {
+            background-color: #ddd;
+        }
+        /* row striping for main table (best items) */
+        .main-row:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        /* runner-ups table uses white/blue row striping */
+        .ru-table th {
+            background-color: #ccf;
+        }
+        .ru-table tr:nth-child(even) {
+            background-color: #ccf;
+        }
+        
+        /* Example fixed column widths (just to illustrate).
+           All columns add up to 100%. Adjust as needed. */
+        col.qty          { width: 4%; }
+        col.manuf        { width: 12%; }
+        col.partnum      { width: 20%; }
+        col.cap          { width: 6%; }
+        col.volt         { width: 6%; }
+        col.ripple       { width: 7%; }
+        col.impedance    { width: 7%; }
+        col.lifetime     { width: 7%; }
+        col.temp         { width: 7%; }
+        col.diam         { width: 7%; }
+        col.height       { width: 7%; }
+        col.price        { width: 6%; }
+        col.composite    { width: 8%; }
+        col.toggle       { width: 4%; }
+    </style>
+    <script>
+    function toggleRunnerUps(id) {
+      let row = document.getElementById(id);
+      if (row.style.display === 'none') {
+        row.style.display = 'table-row';
+      } else {
+        row.style.display = 'none';
+      }
+    }
+    </script>
+</head>
+<body>
+
+<h2>Best Capacitors from Digi-Key</h2>
+
+<!-- "colgroup" with 14 columns for the main table -->
+<table class="main-table">
+  <colgroup>
+    <col class="qty" />
+    <col class="manuf" />
+    <col class="partnum" />
+    <col class="cap" />
+    <col class="volt" />
+    <col class="ripple" />
+    <col class="impedance" />
+    <col class="lifetime" />
+    <col class="temp" />
+    <col class="diam" />
+    <col class="height" />
+    <col class="price" />
+    <col class="composite" />
+    <col class="toggle" />
+  </colgroup>
+  
+  <thead>
+    <tr>
+      <th>Qty</th>
+      <th>Manufacturer</th>
+      <th>Part Number</th>
+      <th>Cap (µF)</th>
+      <th>Volt (V)</th>
+      <th>Ripple</th>
+      <th>Imp (mΩ)</th>
+      <th>Lifetime (hrs)</th>
+      <th>Temp (°C)</th>
+      <th>Diam (mm)</th>
+      <th>Height (mm)</th>
+      <th>Price (USD)</th>
+      <th>Composite</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for spec in specs_data %}
+    <tr class="main-row">
+      <td>{{ spec.quantity|int }}</td>
+      <td>{{ spec.best.Manufacturer }}</td>
+      <td>{{ spec.best['Part Number Link'] | safe }}</td>
+      <td>{{ spec.best.Capacitance }}</td>
+      <td>{{ spec.best.Voltage }}</td>
+      <td>{{ spec.best.Ripple }}</td>
+      
+      <!-- Impedance: show '-' if 0 -->
+      <td>
+        {% if spec.best.Impedance == 0 %}
+          -
+        {% else %}
+          {{ spec.best.Impedance }}
+        {% endif %}
+      </td>
+      
+      <td>{{ spec.best.Lifetime }}</td>
+      <td>{{ spec.best.Temp }}</td>
+      <td>{{ spec.best.Diameter }}</td>
+      <td>{{ spec.best.Height }}</td>
+      <td>{{ spec.best.Price }}</td>
+      <td>{{ spec.best.Composite }}</td>
+      <td>
+        <button onclick="toggleRunnerUps('ru_{{ loop.index0 }}')">⏷</button>
+      </td>
+    </tr>
+    
+    <tr id="ru_{{ loop.index0 }}" style="display:none;">
+      <!-- same 14 columns for alignment -->
+      <td colspan="14" style="padding:0; border: none;">
+        <!-- runner-ups table with same colgroup definitions -->
+        <table class="ru-table">
+          <colgroup>
+            <col class="qty" />
+            <col class="manuf" />
+            <col class="partnum" />
+            <col class="cap" />
+            <col class="volt" />
+            <col class="ripple" />
+            <col class="impedance" />
+            <col class="lifetime" />
+            <col class="temp" />
+            <col class="diam" />
+            <col class="height" />
+            <col class="price" />
+            <col class="composite" />
+            <col class="toggle" /><!-- empty col for alignment -->
+          </colgroup>
+          
+          <thead>
+            <tr>
+              <th></th><!-- This column aligns with "Qty" above, so is blank -->
+              <th>Manufacturer</th>
+              <th>Part Number</th>
+              <th>Cap (µF)</th>
+              <th>Volt (V)</th>
+              <th>Ripple</th>
+              <th>Imp (mΩ)</th>
+              <th>Lifetime (hrs)</th>
+              <th>Temp (°C)</th>
+              <th>Diam (mm)</th>
+              <th>Height (mm)</th>
+              <th>Price (USD)</th>
+              <th>Composite</th>
+              <th></th><!-- This column aligns with the toggle column, blank -->
+            </tr>
+          </thead>
+          <tbody>
+          {% for ru in spec.runner_ups %}
+            <tr>
+              <td></td><!-- Aligns under "Qty" (blank) -->
+              <td>{{ ru.Manufacturer }}</td>
+              <td>{{ ru['Part Number Link'] | safe }}</td>
+              <td>{{ ru.Capacitance }}</td>
+              <td>{{ ru.Voltage }}</td>
+              <td>{{ ru.Ripple }}</td>
+              
+              <!-- Imp: show '-' if 0 -->
+              <td>
+                {% if ru.Impedance == 0 %}
+                  -
+                {% else %}
+                  {{ ru.Impedance }}
+                {% endif %}
+              </td>
+              
+              <td>{{ ru.Lifetime }}</td>
+              <td>{{ ru.Temp }}</td>
+              <td>{{ ru.Diameter }}</td>
+              <td>{{ ru.Height }}</td>
+              <td>{{ ru.Price }}</td>
+              <td>{{ ru.Composite }}</td>
+              <td></td><!-- Aligns under the toggle column (blank) -->
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<p><strong>Total Cost (USD):</strong> {{ total_cost_str }}</p>
+<p><strong>Unique Cap Entries:</strong> {{ unique_caps }}</p>
+<p><strong>Total Quantity of Caps:</strong> {{ total_caps }}</p>
+
+</body>
+</html>

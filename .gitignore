@@ -1,0 +1,5 @@
+**/digikey_cache
+*.csv
+*.html
+.vscode/**
+*.pyc
