@@ -1,213 +1,267 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <title>Best Capacitors from Digi-Key</title>
-    <style>
-        table.main-table, .ru-table {
-            border-collapse: collapse;
-            width: 100%;
-            table-layout: fixed; /* Force fixed layout so columns line up */
+  <meta charset="utf-8" />
+  <title>Best Capacitors from Digi-Key</title>
+  <style>
+    /* Shared table styles */
+    table.main-table, .ru-table {
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed;
+    }
+    table.main-table th, table.main-table td,
+    .ru-table th, .ru-table td {
+      border: 1px solid #999;
+      padding: 6px;
+      text-align: center;
+    }
+    table.main-table th {
+      background-color: #ddd;
+    }
+    /* Runner-ups table: alternate rows with white/light blue */
+    .ru-table tr:nth-child(even) {
+      background-color: #ccf;
+    }
+    .ru-table tr:nth-child(odd) {
+      background-color: white;
+    }
+    /* Dimmed style for non-focused best rows */
+    .dimmed {
+      filter: brightness(70%);
+    }
+    /* Label cell: contains a truncated element plus a hover overlay */
+    .label-cell {
+      position: relative;
+      cursor: pointer;
+    }
+    .label-cell .truncated {
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .label-cell .full-label {
+      display: none;
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: white;
+      border: 1px solid #999;
+      padding: 5px;
+      z-index: 100;
+      white-space: normal;
+      max-width: 300px;
+    }
+    .label-cell.has-overflow:hover .full-label {
+      display: block;
+    }
+    /* Fixed column widths */
+    col.label         { width: 8%; }
+    col.qty           { width: 4%; }
+    col.manuf         { width: 12%; }
+    col.partnum       { width: 20%; }
+    col.cap           { width: 6%; }
+    col.volt          { width: 6%; }
+    col.ripple        { width: 7%; }
+    col.lifetime      { width: 7%; }
+    col.temp          { width: 7%; }
+    col.diam          { width: 7%; }
+    col.height        { width: 7%; }
+    col.price         { width: 6%; }
+    col.composite     { width: 8%; }
+    col.toggle        { width: 4%; }
+  </style>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const labelCells = document.querySelectorAll('.label-cell .truncated');
+      labelCells.forEach(function(el) {
+        if (el.scrollWidth > el.clientWidth) {
+          el.parentNode.classList.add('has-overflow');
         }
-        table.main-table th, table.main-table td,
-        .ru-table th, .ru-table td {
-            border: 1px solid #999;
-            padding: 6px;
-            text-align: center;
-        }
-        table.main-table th {
-            background-color: #ddd;
-        }
-        /* row striping for main table (best items) */
-        .main-row:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        /* runner-ups table uses white/blue row striping */
-        .ru-table th {
-            background-color: #ccf;
-        }
-        .ru-table tr:nth-child(even) {
-            background-color: #ccf;
-        }
-        
-        /* Example fixed column widths (just to illustrate).
-           All columns add up to 100%. Adjust as needed. */
-        col.qty          { width: 4%; }
-        col.manuf        { width: 12%; }
-        col.partnum      { width: 20%; }
-        col.cap          { width: 6%; }
-        col.volt         { width: 6%; }
-        col.ripple       { width: 7%; }
-        col.impedance    { width: 7%; }
-        col.lifetime     { width: 7%; }
-        col.temp         { width: 7%; }
-        col.diam         { width: 7%; }
-        col.height       { width: 7%; }
-        col.price        { width: 6%; }
-        col.composite    { width: 8%; }
-        col.toggle       { width: 4%; }
-    </style>
-    <script>
-    function toggleRunnerUps(id) {
-      let row = document.getElementById(id);
-      if (row.style.display === 'none') {
-        row.style.display = 'table-row';
+      });
+    });
+
+    function toggleRunnerUps(id, btn) {
+      let ruRow = document.getElementById(id);
+      let isVisible = ruRow.style.display !== 'none';
+      let mainRow = btn.closest('.main-row');
+      let indexVal = mainRow.getAttribute('data-index');
+      
+      if (isVisible) {
+        ruRow.style.display = 'none';
+        btn.innerHTML = "⏷";
+        document.querySelectorAll('.main-row').forEach(function(row) {
+          row.classList.remove('dimmed');
+        });
       } else {
-        row.style.display = 'none';
+        ruRow.style.display = 'table-row';
+        btn.innerHTML = "⏶";
+        document.querySelectorAll('.main-row').forEach(function(row) {
+          if (row.getAttribute('data-index') !== indexVal) {
+            row.classList.add('dimmed');
+          } else {
+            row.classList.remove('dimmed');
+          }
+        });
       }
     }
-    </script>
+    function toggleBulkOrder() {
+      let el = document.getElementById('bulkOrder');
+      el.style.display = (el.style.display === 'none' ? 'block' : 'none');
+    }
+  </script>
 </head>
 <body>
 
-<h2>Best Capacitors from Digi-Key</h2>
+  <h2>Best Capacitors from Digi-Key</h2>
 
-<!-- "colgroup" with 14 columns for the main table -->
-<table class="main-table">
-  <colgroup>
-    <col class="qty" />
-    <col class="manuf" />
-    <col class="partnum" />
-    <col class="cap" />
-    <col class="volt" />
-    <col class="ripple" />
-    <col class="impedance" />
-    <col class="lifetime" />
-    <col class="temp" />
-    <col class="diam" />
-    <col class="height" />
-    <col class="price" />
-    <col class="composite" />
-    <col class="toggle" />
-  </colgroup>
-  
-  <thead>
-    <tr>
-      <th>Qty</th>
-      <th>Manufacturer</th>
-      <th>Part Number</th>
-      <th>Cap (µF)</th>
-      <th>Volt (V)</th>
-      <th>Ripple</th>
-      <th>Imp (mΩ)</th>
-      <th>Lifetime (hrs)</th>
-      <th>Temp (°C)</th>
-      <th>Diam (mm)</th>
-      <th>Height (mm)</th>
-      <th>Price (USD)</th>
-      <th>Composite</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for spec in specs_data %}
-    <tr class="main-row">
-      <td>{{ spec.quantity|int }}</td>
-      <td>{{ spec.best.Manufacturer }}</td>
-      <td>{{ spec.best['Part Number Link'] | safe }}</td>
-      <td>{{ spec.best.Capacitance }}</td>
-      <td>{{ spec.best.Voltage }}</td>
-      <td>{{ spec.best.Ripple }}</td>
-      
-      <!-- Impedance: show '-' if 0 -->
-      <td>
-        {% if spec.best.Impedance == 0 %}
-          -
-        {% else %}
-          {{ spec.best.Impedance }}
-        {% endif %}
-      </td>
-      
-      <td>{{ spec.best.Lifetime }}</td>
-      <td>{{ spec.best.Temp }}</td>
-      <td>{{ spec.best.Diameter }}</td>
-      <td>{{ spec.best.Height }}</td>
-      <td>{{ spec.best.Price }}</td>
-      <td>{{ spec.best.Composite }}</td>
-      <td>
-        <button onclick="toggleRunnerUps('ru_{{ loop.index0 }}')">⏷</button>
-      </td>
-    </tr>
+  <!-- Main table with an extra leftmost column for Label(s) -->
+  <table class="main-table">
+    <colgroup>
+      <col class="label" />
+      <col class="qty" />
+      <col class="manuf" />
+      <col class="partnum" />
+      <col class="cap" />
+      <col class="volt" />
+      <col class="ripple" />
+      <col class="lifetime" />
+      <col class="temp" />
+      <col class="diam" />
+      <col class="height" />
+      <col class="price" />
+      <col class="composite" />
+      <col class="toggle" />
+    </colgroup>
     
-    <tr id="ru_{{ loop.index0 }}" style="display:none;">
-      <!-- same 14 columns for alignment -->
-      <td colspan="14" style="padding:0; border: none;">
-        <!-- runner-ups table with same colgroup definitions -->
-        <table class="ru-table">
-          <colgroup>
-            <col class="qty" />
-            <col class="manuf" />
-            <col class="partnum" />
-            <col class="cap" />
-            <col class="volt" />
-            <col class="ripple" />
-            <col class="impedance" />
-            <col class="lifetime" />
-            <col class="temp" />
-            <col class="diam" />
-            <col class="height" />
-            <col class="price" />
-            <col class="composite" />
-            <col class="toggle" /><!-- empty col for alignment -->
-          </colgroup>
-          
-          <thead>
-            <tr>
-              <th></th><!-- This column aligns with "Qty" above, so is blank -->
-              <th>Manufacturer</th>
-              <th>Part Number</th>
-              <th>Cap (µF)</th>
-              <th>Volt (V)</th>
-              <th>Ripple</th>
-              <th>Imp (mΩ)</th>
-              <th>Lifetime (hrs)</th>
-              <th>Temp (°C)</th>
-              <th>Diam (mm)</th>
-              <th>Height (mm)</th>
-              <th>Price (USD)</th>
-              <th>Composite</th>
-              <th></th><!-- This column aligns with the toggle column, blank -->
-            </tr>
-          </thead>
-          <tbody>
-          {% for ru in spec.runner_ups %}
-            <tr>
-              <td></td><!-- Aligns under "Qty" (blank) -->
-              <td>{{ ru.Manufacturer }}</td>
-              <td>{{ ru['Part Number Link'] | safe }}</td>
-              <td>{{ ru.Capacitance }}</td>
-              <td>{{ ru.Voltage }}</td>
-              <td>{{ ru.Ripple }}</td>
-              
-              <!-- Imp: show '-' if 0 -->
-              <td>
-                {% if ru.Impedance == 0 %}
-                  -
-                {% else %}
-                  {{ ru.Impedance }}
-                {% endif %}
-              </td>
-              
-              <td>{{ ru.Lifetime }}</td>
-              <td>{{ ru.Temp }}</td>
-              <td>{{ ru.Diameter }}</td>
-              <td>{{ ru.Height }}</td>
-              <td>{{ ru.Price }}</td>
-              <td>{{ ru.Composite }}</td>
-              <td></td><!-- Aligns under the toggle column (blank) -->
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+    <thead>
+      <tr>
+        <th>Label(s)</th>
+        <th>Qty</th>
+        <th>Manufacturer</th>
+        <th>Part Number</th>
+        <th>Cap (µF)</th>
+        <th>Volt (V)</th>
+        <th>Ripple</th>
+        <th>Lifetime (hrs)</th>
+        <th>Temp (°C)</th>
+        <th>Diam (mm)</th>
+        <th>Height (mm)</th>
+        <th>Price (USD)</th>
+        <th>Composite</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for spec in specs_data %}
+      {% set bg = 'white' if (loop.index0 % 2 == 0) else '#ccf' %}
+      <tr class="main-row" data-index="{{ loop.index0 }}" style="background-color: {{ bg }};">
+        <td class="label-cell">
+          <div class="truncated">{{ spec.best.CustomerReference }}</div>
+          <div class="full-label">{{ spec.best.CustomerReference }}</div>
+        </td>
+        <td>{{ spec.quantity|int }}</td>
+        <td>{{ spec.best.Manufacturer }}</td>
+        <td>{{ spec.best['Part Number Link'] | safe }}</td>
+        <td>{{ spec.best.Capacitance }}</td>
+        <td>{{ spec.best.Voltage }}</td>
+        <td>{{ spec.best.Ripple }}</td>
+        <td>{{ spec.best.Lifetime }}</td>
+        <td>{{ spec.best.Temp }}</td>
+        <td>{{ spec.best.Diameter }}</td>
+        <td>{{ spec.best.Height }}</td>
+        <td>{{ spec.best.Price }}</td>
+        <td>{{ spec.best.Composite }}</td>
+        <td>
+          <button onclick="toggleRunnerUps('ru_{{ loop.index0 }}', this)">⏷</button>
+        </td>
+      </tr>
+      
+      <tr id="ru_{{ loop.index0 }}" style="display:none;" data-index="{{ loop.index0 }}">
+        <td colspan="14" style="padding:0; border: none;">
+          <!-- Runner-ups table -->
+          <table class="ru-table">
+            <colgroup>
+              <col class="label" />
+              <col class="qty" />
+              <col class="manuf" />
+              <col class="partnum" />
+              <col class="cap" />
+              <col class="volt" />
+              <col class="ripple" />
+              <col class="lifetime" />
+              <col class="temp" />
+              <col class="diam" />
+              <col class="height" />
+              <col class="price" />
+              <col class="composite" />
+              <col class="toggle" />
+            </colgroup>
+            
+            <thead>
+              <tr>
+                <th></th>
+                <th></th>
+                <th>Manufacturer</th>
+                <th>Part Number</th>
+                <th>Cap (µF)</th>
+                <th>Volt (V)</th>
+                <th>Ripple</th>
+                <th>Lifetime (hrs)</th>
+                <th>Temp (°C)</th>
+                <th>Diam (mm)</th>
+                <th>Height (mm)</th>
+                <th>Price (USD)</th>
+                <th>Composite</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for ru in spec.runner_ups %}
+              <tr>
+                <td></td>
+                <td></td>
+                <td>{{ ru.Manufacturer }}</td>
+                <td>{{ ru['Part Number Link'] | safe }}</td>
+                <td>{{ ru.Capacitance }}</td>
+                <td>{{ ru.Voltage }}</td>
+                <td>{{ ru.Ripple }}</td>
+                <td>{{ ru.Lifetime }}</td>
+                <td>{{ ru.Temp }}</td>
+                <td>{{ ru.Diameter }}</td>
+                <td>{{ ru.Height }}</td>
+                <td>{{ ru.Price }}</td>
+                <td>{{ ru.Composite }}</td>
+                <td></td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
 
-<p><strong>Total Cost (USD):</strong> {{ total_cost_str }}</p>
-<p><strong>Unique Cap Entries:</strong> {{ unique_caps }}</p>
-<p><strong>Total Quantity of Caps:</strong> {{ total_caps }}</p>
+  <!-- Bulk Order List dropdown -->
+  <button onclick="toggleBulkOrder()">Show/Hide Bulk Order List</button>
+  <div id="bulkOrder" style="display: none; margin-top: 20px;">
+    <h3>Bulk Order List</h3>
+    <textarea style="width: 100%; height: 150px;" readonly>
+{% for spec in specs_data -%}
+{{ spec.quantity|int }}, {{ spec.best.PartNumber }}, {{ spec.best.CustomerReference }}
+{%- if not loop.last %}
+  
+{%- endif %}
+{% endfor %}
+    </textarea>
+  </div>
+
+  <p><strong>Total Cost (USD):</strong> {{ total_cost_str }}</p>
+  <p><strong>Unique Cap Entries:</strong> {{ unique_caps }}</p>
+  <p><strong>Total Quantity of Caps:</strong> {{ total_caps }}</p>
 
 </body>
 </html>

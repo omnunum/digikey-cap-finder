@@ -3,38 +3,139 @@ import math
 import json
 import requests
 import hashlib
-
-voltage_list = [
-    5, 3, 4, 6, 7, 8, 10, 12, 15, 16, 20, 25, 28, 30, 35, 40, 42, 45, 50, 55, 
-    56, 60, 63, 65, 70, 71, 75, 80, 90, 95, 100, 110, 120, 125, 150, 160, 175, 
-    180, 200, 210, 220, 225, 230, 250, 280, 300, 315, 330, 350, 360, 375, 385, 
-    400, 415, 420, 440, 450, 475, 500, 525, 550, 560, 570, 575, 580, 600, 630, 
-    650, 700, 750
-]
-
-def get_n_next_voltages(voltage, n):
-    return get_n_next_values(voltage_list, voltage, n)
-
-def get_n_next_values(values, starting_value, n):
-    """
-    Get the next n entries from the list after a matching starting value.
-    """
-    try:
-        # Find the index of the starting value
-        index = values.index(starting_value)
-        
-        # Slice the list to get the next n entries
-        next_values = values[index + 1: index + 1 + n]
-        
-        return next_values
-    except ValueError:
-        # If the input value is not found, return an empty list
-        return []
+import re
 
 def round_up_to_sigfig(number: float | int, rounded_to: int) -> float | int:
     return round(number, rounded_to) if number != int(number) else int(number)
 
-# These parsing helpers handle the product's parameter extraction & numeric conversions.
+def build_search_payload(capacitance, config, voltage=None):
+    """
+    Build a search payload for a given capacitance and optional voltage.
+    
+    If voltage is None, the Keywords string will include only the capacitance and temperature rating.
+    Otherwise, it includes capacitance, voltage, and temperature rating.
+    """
+    if voltage is None:
+        keywords = f"{round_up_to_sigfig(capacitance, 1)}µF {config.temperature_rating}"
+    else:
+        keywords = f"{round_up_to_sigfig(capacitance, 1)}µF {round_up_to_sigfig(voltage, 1)}V {config.temperature_rating}"
+    
+    payload = {
+        "Keywords": keywords,
+        "Limit": config.limit,
+        "Offset": 0,
+        "MinimumQuantityAvailable": config.min_quantity,
+        "FilterOptionsRequest": {
+            "ParameterFilterRequest": {
+                "CategoryFilter": {"Id": "58"},
+                "ParameterFilters": [
+                    {"ParameterId": 16, "FilterValues": [{"Id": "392320"}]}
+                ]
+            },
+            "ManufacturerFilter": [{"Id": mid} for mid in ["565", "399", "493", "1189", "732"]]
+        },
+        "SortOptions": {
+            "Field": "2260",
+            "SortOrder": "Descending"
+        }
+    }
+    return payload
+
+def make_cached_request(url, payload, headers, cache_dir):
+    """
+    Creates an MD5 hash of (url + sorted JSON payload). If a file with that hash
+    is found in cache_dir, we load and return it. Otherwise, make the request,
+    store the result, and return it.
+    """
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir, exist_ok=True)
+    
+    cache_key_str = url + json.dumps(payload, sort_keys=True)
+    cache_hash = hashlib.md5(cache_key_str.encode("utf-8")).hexdigest()
+    cache_file_path = os.path.join(cache_dir, cache_hash + ".json")
+    
+    if os.path.isfile(cache_file_path):
+        print(f"Using cached response for hash {cache_hash}")
+        with open(cache_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    
+    print(f"No cache found for hash {cache_hash}, requesting from API...")
+    resp = requests.post(url, headers=headers, data=json.dumps(payload))
+    resp.raise_for_status()
+    data = resp.json()
+    
+    with open(cache_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    return data
+
+def create_cached_request_func(config, access_token):
+    """
+    Returns a function that, when given a payload, will call make_cached_request
+    using the provided config and access token (bound into the headers).
+    """
+    headers = {
+         "X-DIGIKEY-Client-Id": config.client_id,
+         "authorization": f"Bearer {access_token}",
+         "content-type": "application/json",
+         "accept": "application/json",
+    }
+    def cached_request(payload):
+         return make_cached_request(config.search_url, payload, headers, config.cache_dir)
+    return cached_request
+
+def parse_voltage(voltage_text):
+    """
+    Parse a voltage string like "350 V" and return the numeric value (e.g. 350.0).
+    Returns None if parsing fails.
+    """
+    if not voltage_text:
+        return None
+    try:
+        match = re.search(r"([\d\.]+)", voltage_text)
+        if match:
+            return float(match.group(1))
+    except Exception as e:
+        return None
+
+def get_supported_voltages_for_cap(capacitance, cached_request, config):
+    """
+    For a given capacitance (in µF), perform a search (without specifying voltage)
+    to retrieve the supported voltage ratings from FilterOptions.ParametricFilters
+    where ParameterId == 2079.
+    
+    Returns a sorted list of numeric voltage values.
+    """
+    payload = build_search_payload(capacitance, config, voltage=None)
+    response = cached_request(payload)
+    
+    supported_voltages = []
+    filter_options = response.get("FilterOptions", {})
+    parametric_filters = filter_options.get("ParametricFilters", [])
+    for pf in parametric_filters:
+        if not pf.get("ParameterId") == 2079:
+            continue
+        for fv in pf.get("FilterValues", []):
+            value_text = fv.get("ValueName", "")
+            match = re.search(r"(\d+)", value_text)
+            if match:
+                supported_voltages.append(int(match.group(1)))
+    return sorted(set(supported_voltages))
+
+def get_n_next_voltages_for_cap(capacitance, current_voltage, n, supported_voltages):
+    """
+    Given a sorted list of supported voltages (numeric) for a particular capacitance,
+    return the next n voltages that are greater than current_voltage.
+    """
+    next_voltages = []
+    for v in supported_voltages:
+        if v > current_voltage:
+            next_voltages.append(v)
+        if len(next_voltages) >= n:
+            break
+    return next_voltages
+
+# Parsing helpers
+
 def get_parameter_value(product, parameter_name):
     """Returns the product's parameter ValueText for a given parameter_name (case-insensitive)."""
     for param in product.get("Parameters", []):
@@ -74,20 +175,13 @@ def parse_impedance(imp_text):
     if not imp_text:
         return 0.0
     try:
-        # Split on whitespace; first token is the numeric part, e.g. "1.37" or "900"
         parts = imp_text.split()
         numeric_str = parts[0].strip()
         value = float(numeric_str)
-        
-        # Convert everything to lower case for unit detection
         text_lower = imp_text.lower()
-        
         if "mohms" in text_lower:
-            # e.g. "900 mOhms" -> 900.0
             return value
         else:
-            # e.g. "1.37 ohms" -> multiply by 1000 to get mOhms
-            # If "mOhms" is NOT found, assume it's in ohms
             return value * 1000.0
     except:
         return 0.0
@@ -105,16 +199,18 @@ def parse_lifetime_temp(lifetime_text):
         return (0, 0)
 
 def parse_esr(esr_text):
-    """Returns ESR as float, or 0 on failure."""
-    if not esr_text:
-        return 0
-    try:
-        return float(esr_text)
-    except:
-        return 0
+    """
+    Parse the ESR value from a string like "2.5Ohm @ 100kHz" and return a float.
+    Returns None if parsing fails.
+    """
+    if esr_text:
+        match = re.search(r"([\d\.]+)\s*Ohm", esr_text)
+        if match:
+            return float(match.group(1))
+    return None
 
 def parse_diameter(size_text):
-    """Extract the diameter (in mm) from e.g. '0.630" Dia (16.00mm)' -> 16.0. Returns None if not found."""
+    """Extract the diameter (in mm) from e.g. '0.630\" Dia (16.00mm)' -> 16.0. Returns None if not found."""
     if not size_text:
         return None
     try:
@@ -128,7 +224,7 @@ def parse_diameter(size_text):
         return None
 
 def parse_height(height_text):
-    """Extract the height (in mm) from e.g. '1.063" (27.00mm)' -> 27.0. Returns None if not found."""
+    """Extract the height (in mm) from e.g. '1.063\" (27.00mm)' -> 27.0. Returns None if not found."""
     if not height_text:
         return None
     try:
@@ -140,7 +236,6 @@ def parse_height(height_text):
         return float(val)
     except:
         return None
-
 
 def get_variation_unit_price(product):
     """
@@ -163,31 +258,3 @@ def get_variation_unit_price(product):
     if prices:
         return min(prices)
     return None
-
-
-def make_cached_request(url, payload, headers, cache_dir):
-    """
-    Creates an MD5 hash of (url + sorted JSON payload). If a file with that hash
-    is found in cache_dir, we load and return it. Otherwise, make the request,
-    store the result, and return it.
-    """
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir, exist_ok=True)
-    
-    cache_key_str = url + json.dumps(payload, sort_keys=True)
-    cache_hash = hashlib.md5(cache_key_str.encode("utf-8")).hexdigest()
-    cache_file_path = os.path.join(cache_dir, cache_hash + ".json")
-    
-    if os.path.isfile(cache_file_path):
-        print(f"Using cached response for hash {cache_hash}")
-        with open(cache_file_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    
-    print(f"No cache found for hash {cache_hash}, requesting from API...")
-    resp = requests.post(url, headers=headers, data=json.dumps(payload))
-    resp.raise_for_status()
-    data = resp.json()
-    
-    with open(cache_file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-    return data

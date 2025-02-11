@@ -11,12 +11,14 @@ from helpers import (
     get_variation_unit_price,
     parse_ripple_hf,
     parse_lifetime_temp,
-    parse_impedance,
-    parse_esr,
     parse_diameter,
     parse_height,
     round_up_to_sigfig,
-    get_n_next_voltages
+    build_search_payload,
+    get_supported_voltages_for_cap,
+    get_n_next_voltages_for_cap,
+    create_cached_request_func,
+    parse_voltage
 )
 
 @dataclass
@@ -31,61 +33,69 @@ class Config:
     
     lifetime_temp_threshold: float
     weight_ripple: float
-    weight_impedance: float
     weight_price: float
     weight_lifetime: float
     weight_diameter_penalty: float
+    weight_voltage: float          # new weight for voltage bonus
     
-    allow_merge_with_higher_voltage: bool  # <-- new boolean config
+    allow_merge_with_higher_voltage: bool
+    opportunistic_voltage_search: bool
     
     cache_dir: str
     csv_input: str
     csv_output: str
     html_output: str
 
-def compute_composite_scores(products, config, source_diameter, quantity=1):
+def compute_composite_scores(products, config, source_diameter, quantity=1, tight_fit=True):
     """
-    Same as your existing function, but with diameter penalty logic.
-    ...
+    Compute composite scores for candidate products. In addition to ripple, lifetime,
+    price, and a diameter penalty, a bonus is added for higher rated voltage.
+    Only products with QuantityAvailable >= quantity and not marked as Marketplace are considered.
     """
-    from math import log, log10
+    from math import log10, sqrt
     
-    # For example: quantity_factor = min(1 + log10(max(1, quantity)), 5)
     quantity_factor = min(1 + log10(max(1, quantity)), 5)
     
     raw_items = []
     for prod in products:
+        if prod.get("MarketPlace", False):
+            continue
+        
+        available = prod.get("QuantityAvailable")
+        try:
+            available = int(available)
+        except (ValueError, TypeError):
+            continue
+        if available < quantity:
+            continue
+        
         variation_price = get_variation_unit_price(prod)
         if variation_price is None:
             continue
         
-        # parse fields
         hf_text = get_parameter_value(prod, "Ripple Current @ High Frequency")
         mA, freq = parse_ripple_hf(hf_text)
         raw_ripple = mA * freq
         
         lifetime_text = get_parameter_value(prod, "Lifetime @ Temp.")
         lifetime, temp = parse_lifetime_temp(lifetime_text)
-        
-        # Example: sqrt(1 + lifetime) * max(0, temp - threshold)
-        raw_lifetime = math.sqrt(1 + lifetime) * max(0, (temp - config.lifetime_temp_threshold))
-        
-        imp = parse_impedance(get_parameter_value(prod, "Impedance"))
-        esr = parse_esr(get_parameter_value(prod, "ESR (Equivalent Series Resistance)"))
-        raw_impedance = imp + esr
+        raw_lifetime = sqrt(1 + lifetime) * max(0, (temp - config.lifetime_temp_threshold))
         
         raw_price = variation_price * quantity
         
         diameter_text = get_parameter_value(prod, "Size / Dimension")
         product_diameter = parse_diameter(diameter_text)
         
+        voltage_text = get_parameter_value(prod, "Voltage - Rated")
+        raw_voltage = parse_voltage(voltage_text) if voltage_text else 0.0
+        
         raw_items.append({
             "prod": prod,
-            "composite": 0.0,  # we'll compute below
+            "composite": 0.0,
             "raw_ripple": raw_ripple,
             "raw_lifetime": raw_lifetime,
-            "raw_impedance": raw_impedance,
             "raw_price": raw_price,
+            "raw_voltage": raw_voltage,
             "mA": mA,
             "freq": freq,
             "lifetime": lifetime,
@@ -97,29 +107,26 @@ def compute_composite_scores(products, config, source_diameter, quantity=1):
     if not raw_items:
         return []
     
-    # normalization
     max_ripple = max(i["raw_ripple"] for i in raw_items) or 1
     max_lifetime = max(i["raw_lifetime"] for i in raw_items) or 1
-    max_impedance = max(i["raw_impedance"] for i in raw_items) or 1
     max_price = max(i["raw_price"] for i in raw_items) or 1
+    max_voltage = max(i["raw_voltage"] for i in raw_items) or 1
     
     scored = []
     for i in raw_items:
         nr = i["raw_ripple"] / max_ripple
         nl = i["raw_lifetime"] / max_lifetime
-        ni = i["raw_impedance"] / max_impedance
-        np = i["raw_price"] / max_price
-        
+        np_ = i["raw_price"] / max_price
+        nv = i["raw_voltage"] / max_voltage
         composite = (
             config.weight_ripple * nr +
             config.weight_lifetime * nl -
-            config.weight_impedance * ni -
-            config.weight_price * np * quantity_factor
+            config.weight_price * np_ * quantity_factor +
+            config.weight_voltage * nv
         )
-        
-        # diameter penalty
-        if i["product_diameter"] is not None and i["product_diameter"] > source_diameter:
-            diff = i["product_diameter"] - source_diameter
+        threshold = source_diameter if tight_fit else source_diameter * 1.25
+        if i["product_diameter"] is not None and i["product_diameter"] > threshold:
+            diff = i["product_diameter"] - threshold
             composite -= diff * config.weight_diameter_penalty
         
         i["composite"] = composite
@@ -128,183 +135,147 @@ def compute_composite_scores(products, config, source_diameter, quantity=1):
     scored.sort(key=lambda x: x["composite"], reverse=True)
     return scored
 
-
-def search_capacitor(capacitance, voltage, source_diameter, access_token, config: Config, quantity):
-    """
-    Returns best+runner_ups for a single CSV line.
-    """    
-    # Build the payload
-    search_payload = {
-        "Keywords": f"{round_up_to_sigfig(capacitance, 1)}µF {round_up_to_sigfig(voltage, 1)}V {config.temperature_rating}",
-        "Limit": config.limit,
-        "Offset": 0,
-        "MinimumQuantityAvailable": config.min_quantity,
-        "FilterOptionsRequest": {
-            "ParameterFilterRequest": {
-                "CategoryFilter": {"Id": "58"},
-                "ParameterFilters": [
-                    {
-                        "ParameterId": 16,
-                        "FilterValues": [{"Id": "392320"}]
-                    }
-                ]
-            },
-            "ManufacturerFilter": [
-                {"Id": mid} 
-                for mid in ["565","399","493","1189","732"]
-            ]
-        },
-        "SortOptions": {
-            "Field": "2260",
-            "SortOrder": "Descending"
-        }
-    }
-    headers = {
-        "X-DIGIKEY-Client-Id": config.client_id,
-        "authorization": f"Bearer {access_token}",
-        "content-type": "application/json",
-        "accept": "application/json",
-    }
-    
+def search_capacitor(capacitance, voltage, source_diameter, cached_request, config: Config, quantity, tight_fit):
+    payload = build_search_payload(capacitance, config, voltage=voltage)
     try:
-        data = make_cached_request(config.search_url, search_payload, headers, config.cache_dir)
+        data = cached_request(payload)
     except requests.HTTPError as e:
-        print(f"Error requesting data for {search_payload['Keywords']}: {e}")
+        print(f"Error requesting data for {payload['Keywords']}: {e}")
         return None
     
     products = data.get("Products", [])
     if not products:
-        print(f"No products found for {search_payload['Keywords']}")
+        print(f"No products found for {payload['Keywords']}")
         return None
     
-    scored = compute_composite_scores(products, config, source_diameter, quantity)
+    scored = compute_composite_scores(products, config, source_diameter, quantity, tight_fit)
     if not scored:
-        print(f"No eligible products for {search_payload['Keywords']}")
+        print(f"No eligible products for {payload['Keywords']}")
         return None
     
     best = scored[0]
     runner_ups = scored[1:]
-
+    
     def create_product_dict(prod_data):
-        # parse diam/height
         diam_text = get_parameter_value(prod_data["prod"], "Size / Dimension")
-        ht_text   = get_parameter_value(prod_data["prod"], "Height - Seated (Max)")
-        
+        ht_text = get_parameter_value(prod_data["prod"], "Height - Seated (Max)")
         diam = parse_diameter(diam_text)
         height = parse_height(ht_text)
         
-        product_url = prod_data["prod"].get("ProductUrl", "")
-        part_num = prod_data["prod"].get("ManufacturerProductNumber", "N/A")
+        product = prod_data["prod"]
+        product_url = product.get("ProductUrl", "")
+        part_num = product.get("ManufacturerProductNumber", "N/A")
+        if "ProductVariations" in product:
+            for variation in product["ProductVariations"]:
+                if variation.get("MinimumOrderQuantity") == 1:
+                    part_num = variation.get("DigiKeyProductNumber", part_num)
+                    break
+        customer_ref = ""
+        if product_url:
+            parts = product_url.rstrip("/").split("/")
+            if parts:
+                customer_ref = parts[-1]
         part_link = f'<a href="{product_url}" target="_blank">{part_num}</a>' if product_url else part_num
         
         return {
             "Capacitance": round_up_to_sigfig(capacitance, 1),
             "Voltage": round_up_to_sigfig(voltage, 1),
-            "Manufacturer": prod_data["prod"].get("Manufacturer", {}).get("Name", "N/A"),
+            "Manufacturer": product.get("Manufacturer", {}).get("Name", "N/A"),
             "Part Number Link": part_link,
+            "PartNumber": part_num,
+            "CustomerReference": customer_ref,
             "Ripple": int(round(prod_data["raw_ripple"])),
-            "Impedance": 0 if prod_data["raw_impedance"] <= 0.001 else round(prod_data["raw_impedance"],2),
             "Lifetime": int(round(prod_data["lifetime"])),
             "Temp": int(round(prod_data["temp"])),
-            "Diameter": round(diam,2) if diam else "",
-            "Height": round(height,2) if height else "",
-            "Price": round(prod_data["unit_price"],2),
-            "Composite": round(prod_data["composite"],2)
+            "Diameter": round(diam, 2) if diam else "",
+            "Height": round(height, 2) if height else "",
+            "Price": round(prod_data["unit_price"], 2),
+            "Composite": round(prod_data["composite"], 2)
         }
     
     best_dict = create_product_dict(best)
     runner_up_dicts = [create_product_dict(ru) for ru in runner_ups]
     
-    return {
-        "best": best_dict,
-        "runner_ups": runner_up_dicts
-    }
-
+    return {"best": best_dict, "runner_ups": runner_up_dicts}
 
 def merge_with_higher_voltage(specs_data):
-    """
-    Within each group of items having the same Capacitance, merge lower-voltage items into
-    higher-voltage items if both diameter and height are within 2mm.
-
-    Steps:
-      1) Group specs_data by best["Capacitance"].
-      2) Within each group, sort by best["Voltage"] ascending.
-      3) For each item i from low to high voltage, try to merge it into a higher-voltage item j
-         if (j_volt > i_volt) and abs(i_diam - j_diam) <= 2 and abs(i_height - j_height) <= 2.
-         If merged, add item i's quantity to item j and drop item i.
-
-    Returns the final merged list of items.
-    """
     from collections import defaultdict
-
     final = []
     groups = defaultdict(list)
     for item in specs_data:
-        # item["best"] has "Capacitance", "Voltage", "Diameter", "Height", etc.
         cap_level = item["best"]["Capacitance"]
         groups[cap_level].append(item)
     
     for cap_level, items in groups.items():
-        # sort by voltage ascending
         items.sort(key=lambda i: i["best"]["Voltage"])
         n = len(items)
-        in_use = [True]*n
+        in_use = [True] * n
         
-        # For each item i, see if it can merge into a higher-voltage item j
-        for i_idx in range(n-1):
+        for i_idx in range(n - 1):
             if not in_use[i_idx]:
                 continue
-
             i_volt = items[i_idx]["best"]["Voltage"]
             i_qty  = items[i_idx]["quantity"]
             i_diam = items[i_idx]["best"]["Diameter"] or ""
             i_h    = items[i_idx]["best"]["Height"] or ""
-            
-            # Convert to float if possible; skip if blank
             try:
                 i_diam_f = float(i_diam)
                 i_h_f    = float(i_h)
             except ValueError:
-                continue  # no size info => skip merging
-
-            # Look for j > i
-            for j_idx in range(i_idx+1, n):
+                continue
+            for j_idx in range(i_idx + 1, n):
                 if not in_use[j_idx]:
                     continue
-
                 j_volt = items[j_idx]["best"]["Voltage"]
-                # If j's voltage is not strictly greater, skip
                 if j_volt <= i_volt:
                     continue
-
                 j_diam = items[j_idx]["best"]["Diameter"] or ""
                 j_h    = items[j_idx]["best"]["Height"] or ""
-                
                 try:
                     j_diam_f = float(j_diam)
                     j_h_f    = float(j_h)
                 except ValueError:
-                    continue  # skip if missing dimension
-
-                # Must be within 2 mm for diameter & height
+                    continue
                 if abs(i_diam_f - j_diam_f) > 2:
                     continue
                 if abs(i_h_f - j_h_f) > 2:
                     continue
-
-                # If we get here, we can merge i into j
                 items[j_idx]["quantity"] += i_qty
                 in_use[i_idx] = False
-                break  # done merging item i
-        
-        # Add items that remain in use
+                break
         for idx in range(n):
             if in_use[idx]:
                 final.append(items[idx])
-    
     return final
 
+def deduplicate_specs_data(specs_data):
+    deduped = {}
+    for item in specs_data:
+        part = item["best"]["PartNumber"]
+        label = item["best"].get("CustomerReference", "")
+        
+        if part not in deduped:
+            deduped[part] = item.copy()
+            continue
 
+        deduped[part]["quantity"] += item["quantity"]
+        # Combine labels from both items
+        existing_label = deduped[part]["best"].get("CustomerReference", "")
+        combined_labels = set(existing_label.split(";") if existing_label else [])
+        combined_labels.update(label.split(";") if label else [])
+        combined_labels = sorted(filter(None, combined_labels))
+        deduped[part]["best"]["CustomerReference"] = ";".join(combined_labels)
+
+        if item["best"]["Composite"] <= deduped[part]["best"]["Composite"]:
+            continue
+
+        # Combine labels when replacing best
+        new_label = item["best"].get("CustomerReference", "")
+        combined_labels += (new_label.split(";") if new_label else [])
+        combined_labels = sorted(filter(None, combined_labels))
+        deduped[part]["best"] = item["best"]
+        deduped[part]["best"]["CustomerReference"] = ";".join(combined_labels)
+    return list(deduped.values())
 
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -320,11 +291,12 @@ def main():
         limit: int
         lifetime_temp_threshold: float
         weight_ripple: float
-        weight_impedance: float
         weight_price: float
         weight_lifetime: float
         weight_diameter_penalty: float
+        weight_voltage: float
         allow_merge_with_higher_voltage: bool
+        opportunistic_voltage_search: bool
         cache_dir: str
         csv_input: str
         csv_output: str
@@ -340,22 +312,26 @@ def main():
         limit=50,
         lifetime_temp_threshold=85.0,
         weight_ripple=3.0,
-        weight_impedance=2.0,
         weight_price=1.0,
         weight_lifetime=2.0,
         weight_diameter_penalty=2.0,
-        allow_merge_with_higher_voltage=False,  # <-- turn merging on
+        weight_voltage=1.0,
+        allow_merge_with_higher_voltage=False,
+        opportunistic_voltage_search=True,
         cache_dir=os.path.join(script_dir, "digikey_cache"),
         csv_input=os.path.join(script_dir, "cap_list.csv"),
         csv_output=os.path.join(script_dir, "digikey_best_caps_final.csv"),
         html_output=os.path.join(script_dir, "digikey_best_caps_final.html")
     )
     
+    # Read CSV (columns: label, capacitance, voltage, diameter, tight_fit)
     cap_df = pd.read_csv(config.csv_input)
-    # we assume columns: (capacitance, voltage, diameter)
-    grouped = cap_df.groupby(["capacitance", "voltage", "diameter"]).size().reset_index(name="Quantity")
+    grouped = cap_df.groupby(["capacitance", "voltage", "diameter", "tight_fit"]).agg(
+        Labels=('label', lambda x: ";".join(sorted(set(x)))),
+        Quantity=('label', 'size')
+    ).reset_index()
     
-    # get token
+    # Get access token (for all searches)
     resp = requests.post(
         config.token_url,
         data={
@@ -371,39 +347,76 @@ def main():
         return
     access_token = token_data["access_token"]
     
+    # Create a cached request function bound to config and access token.
+    cached_request = create_cached_request_func(config, access_token)
+    
+    # Build a dictionary of supported voltages keyed by capacitance.
+    unique_caps = sorted(set(grouped["capacitance"]))
+    cap_to_voltages = {}
+    for cap in unique_caps:
+        voltages = get_supported_voltages_for_cap(cap, cached_request, config)
+        cap_to_voltages[cap] = voltages
+        print(f"Capacitance {cap}µF supports voltages: {voltages}")
+    
     specs_data = []
     for _, row in grouped.iterrows():
         cap = row["capacitance"]
         volt = row["voltage"]
         src_dia = float(row["diameter"])
         qty = row["Quantity"]
+        tight_fit = str(row["tight_fit"]).strip().upper() == "TRUE"
+        labels = row["Labels"]
         
-        while (out := search_capacitor(cap, volt, src_dia, access_token, config, qty)) is None:
-            print(f"Trying to search for next nearest voltage")
-            volt = get_n_next_voltages(volt, 1)[0]
+        if config.opportunistic_voltage_search:
+            supported = cap_to_voltages.get(cap, [])
+            next_voltages = get_n_next_voltages_for_cap(cap, volt, 2, supported)
+            candidate_voltages = [volt] + next_voltages
+            all_candidates = []
+            for cand in candidate_voltages:
+                out = search_capacitor(cap, cand, src_dia, cached_request, config, qty, tight_fit)
+                if out is not None:
+                    all_candidates.append(out["best"])
+                    all_candidates.extend(out["runner_ups"])
+            if not all_candidates:
+                while (out := search_capacitor(cap, volt, src_dia, cached_request, config, qty, tight_fit)) is None:
+                    print(f"Trying to search for next nearest voltage for {cap}µF, {volt}V")
+                    next_vs = get_n_next_voltages_for_cap(cap, volt, 1, cap_to_voltages.get(cap, []))
+                    if not next_vs:
+                        break
+                    volt = next_vs[0]
+                all_candidates = [out["best"]] + out["runner_ups"]
+            all_candidates.sort(key=lambda x: x["Composite"], reverse=True)
+            best_item = all_candidates[0]
+            runner_ups = all_candidates[1:11]
+        else:
+            while (out := search_capacitor(cap, volt, src_dia, cached_request, config, qty, tight_fit)) is None:
+                print(f"Trying to search for next nearest voltage for {cap}µF, {volt}V")
+                next_vs = get_n_next_voltages_for_cap(cap, volt, 1, cap_to_voltages.get(cap, []))
+                if not next_vs:
+                    break
+                volt = next_vs[0]
+            best_item = out["best"]
+            runner_ups = out["runner_ups"][:10]
         
-        best_item = out["best"]
         best_item["Quantity"] = qty
-        runner_ups = out["runner_ups"]
+        best_item["CustomerReference"] = labels
         
-        # store
         specs_data.append({
             "best": best_item,
             "runner_ups": runner_ups,
             "quantity": qty
         })
     
-    # Possibly merge with higher voltage
-    if config.allow_merge_with_higher_voltage:    
+    if config.allow_merge_with_higher_voltage:
         final_data = merge_with_higher_voltage(specs_data)
     else:
         final_data = specs_data
     
-    # Rebuild final data for CSV
+    final_data = deduplicate_specs_data(final_data)
+    
     final_csv_rows = []
     for item in final_data:
         best = item["best"]
-        # put quantity in best item
         best_dict = dict(best)
         best_dict["Quantity"] = item["quantity"]
         final_csv_rows.append(best_dict)
@@ -412,19 +425,17 @@ def main():
     df_csv.to_csv(config.csv_output, index=False)
     print(f"Saved CSV to {config.csv_output}")
     
-    # Summaries
     try:
-        df_csv["Price"]   = pd.to_numeric(df_csv["Price"], errors="coerce")
+        df_csv["Price"] = pd.to_numeric(df_csv["Price"], errors="coerce")
         df_csv["Quantity"] = pd.to_numeric(df_csv["Quantity"], errors="coerce")
-    except:
+    except Exception as e:
         pass
     
     total_cost = (df_csv["Price"] * df_csv["Quantity"]).sum()
     unique_caps = df_csv.shape[0]
-    total_caps  = df_csv["Quantity"].sum()
+    total_caps = df_csv["Quantity"].sum()
     total_cost_str = f"${total_cost:,.2f}"
     
-    # Jinja2 for HTML
     env = Environment(loader=FileSystemLoader(os.path.join(script_dir, "templates")), autoescape=False)
     template = env.get_template("final_report.html.j2")
     
@@ -438,7 +449,6 @@ def main():
     with open(out_html, "w", encoding="utf-8") as f:
         f.write(html_content)
     print(f"HTML saved to {out_html}")
-
 
 if __name__ == "__main__":
     main()
