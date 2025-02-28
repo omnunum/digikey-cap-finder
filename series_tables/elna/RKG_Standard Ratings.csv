@@ -1,0 +1,6 @@
+Rated voltage (V),Rated capacitance (μF),ESR (Ω max. / 100kHz) 20°C,ESR (Ω max. / 100kHz) -40°C,Rated ripple current (mArms / 100kHz) 150°C,Rated ripple current (mArms / 100kHz) 125°C
+25,3900,0.02,0.11,3100,8000
+35,2700,0.02,0.11,3100,8000
+50,1800,0.034,0.19,2800,7000
+63,1200,0.034,0.19,2900,7300
+80,800,0.034,0.19,2900,7300

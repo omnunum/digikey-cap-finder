@@ -1,0 +1,9 @@
+Voltage,Capacitance,ESR 20°C@120Hz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Ripple Current,Status,Vibration resistant,Weight (g)
+450,39,8.162,12.5,31.5,-40,125,0.24,5000,802,600,UBR2W390MND,Uni-Polar,Radial Lead,360,NEW,Normal,6.01
+450,50,6.366,12.5,35.5,-40,125,0.24,5000,1000,500,UBR2W500MND,Uni-Polar,Radial Lead,400,NEW,Normal,7.06
+450,60,5.305,12.5,40,-40,125,0.24,5000,1180,400,UBR2W600MND,Uni-Polar,Radial Lead,500,NEW,Normal,7.57
+450,100,3.183,18,31.5,-40,125,0.24,5000,1900,300,UBR2W101MND,Uni-Polar,Radial Lead,780,NEW,Normal,13.8
+450,120,2.653,18,36,-40,125,0.24,5000,2260,250,UBR2W121MND,Uni-Polar,Radial Lead,850,NEW,Normal,16.9
+450,140,2.274,18,40,-40,125,0.24,5000,2620,200,UBR2W141MND,Uni-Polar,Radial Lead,980,NEW,Normal,17.7
+450,160,1.989,18,46,-40,125,0.24,5000,2980,200,UBR2W161MND,Uni-Polar,Radial Lead,1120,NEW,Normal,20.9
+450,180,1.768,18,50,-40,125,0.24,5000,3340,250,UBR2W181MND,Uni-Polar,Radial Lead,1230,NEW,Normal,23.0

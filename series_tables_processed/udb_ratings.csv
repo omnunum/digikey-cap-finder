@@ -1,0 +1,12 @@
+Voltage,Capacitance,ESR 20°C@120Hz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Status,Vibration resistant,Weight (g)
+50,1,132.629,8,11.5,-40,85,0.1,3,3000,UDB1H010MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,1.19
+50,1.5,88.419,8,11.5,-40,85,0.1,3,3000,UDB1H1R5MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,1.19
+50,2.2,60.286,10,12.5,-40,85,0.1,3,2000,UDB1H2R2MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,1.49
+50,3.3,40.191,10,16,-40,85,0.1,5,1800,UDB1H3R3MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,1.77
+50,4.7,28.219,10,20,-40,85,0.1,7,1400,UDB1H4R7MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,2.34
+50,6.8,19.504,12.5,20,-40,85,0.1,10,1000,UDB1H6R8MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,3.43
+50,10,13.263,12.5,25,-40,85,0.1,15,800,UDB1H100MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,4.56
+50,15,8.842,12.5,25,-40,85,0.1,23,800,UDB1H150MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,4.56
+50,22,6.029,16,25,-40,85,0.1,33,400,UDB1H220MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,8.2
+50,33,4.019,16,30.5,-40,85,0.1,50,300,UDB1H330MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,9.6
+50,47,2.822,18,35.5,-40,85,0.1,71,250,UDB1H470MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,14.2

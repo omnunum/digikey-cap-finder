@@ -1,0 +1,3 @@
+Test Type,Condition,Requirement
+Shelf life 1,Storage for 1000 h at +125 °C±2 °C with no voltage applied,Meet limits specified in endurance after stabilization at +20 °C
+Shelf life 2,Storage for 1000 h at +135 °C±2 °C with no voltage applied,Meet limits specified in endurance after stabilization at +20 °C

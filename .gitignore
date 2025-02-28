@@ -1,5 +1,5 @@
-**/digikey_cache
-*.csv
+**/cache
 *.html
 .vscode/**
 *.pyc
+.DS_Store

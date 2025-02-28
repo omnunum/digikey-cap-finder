@@ -1,0 +1,13 @@
+Test Condition,Parameter,Specification
+Endurance 1 (125°C),Duration ø8,2000 h
+Endurance 1 (125°C),Duration ø10,3000 h
+Endurance 1 (125°C),Duration ø12.5,4000 h
+Endurance 1 (125°C),Duration ø16 to ø18,5000 h
+Endurance 1 (125°C),Capacitance change,Within ±30 % of the initial value
+Endurance 1 (125°C),Dissipation factor (tan δ),≦ 300 % of the initial limit
+Endurance 1 (125°C),DC leakage current,Within the initial limit
+Endurance 2 (135°C),Duration ø8,1000 h
+Endurance 2 (135°C),Duration ø10 to ø18,2000 h
+Endurance 2 (135°C),Capacitance change,Within ±30 % of the initial value
+Endurance 2 (135°C),Dissipation factor (tan δ),≦ 300 % of the initial limit
+Endurance 2 (135°C),DC leakage current,Within the initial limit

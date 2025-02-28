@@ -15,11 +15,11 @@ def build_search_payload(capacitance, config, voltage=None):
     If voltage is None, the Keywords string will include only the capacitance and temperature rating.
     Otherwise, it includes capacitance, voltage, and temperature rating.
     """
-    if voltage is None:
-        keywords = f"{round_up_to_sigfig(capacitance, 1)}µF {config.temperature_rating}"
-    else:
-        keywords = f"{round_up_to_sigfig(capacitance, 1)}µF {round_up_to_sigfig(voltage, 1)}V {config.temperature_rating}"
-    
+    keywords = (
+        f"{round_up_to_sigfig(capacitance, 1)}µF {config.temperature_rating}" 
+        + (f" {round_up_to_sigfig(voltage, 1)}V" if voltage else "")
+    )
+   
     payload = {
         "Keywords": keywords,
         "Limit": config.limit,
@@ -41,32 +41,51 @@ def build_search_payload(capacitance, config, voltage=None):
     }
     return payload
 
-def make_cached_request(url, payload, headers, cache_dir):
+def make_cached_request(url, payload, headers, cache_dir, response_type='json', params=None):
     """
-    Creates an MD5 hash of (url + sorted JSON payload). If a file with that hash
+    Creates an MD5 hash of (url + sorted JSON payload + sorted query params). If a file with that hash
     is found in cache_dir, we load and return it. Otherwise, make the request,
     store the result, and return it.
+    
+    Args:
+        url: The URL to make the request to
+        payload: The request payload/data
+        headers: Request headers
+        cache_dir: Directory to store cached responses
+        response_type: Type of response to expect/cache ('json' or 'html')
+        params: Optional query string parameters
     """
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir, exist_ok=True)
     
+    # Include params in cache key if provided
     cache_key_str = url + json.dumps(payload, sort_keys=True)
+    if params:
+        cache_key_str += json.dumps(params, sort_keys=True)
+        
     cache_hash = hashlib.md5(cache_key_str.encode("utf-8")).hexdigest()
-    cache_file_path = os.path.join(cache_dir, cache_hash + ".json")
+    extension = '.json' if response_type == 'json' else '.html'
+    cache_file_path = os.path.join(cache_dir, cache_hash + extension)
     
     if os.path.isfile(cache_file_path):
         print(f"Using cached response for hash {cache_hash}")
         with open(cache_file_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+            if response_type == 'json':
+                return json.load(f)
+            return f.read()
     
     print(f"No cache found for hash {cache_hash}, requesting from API...")
-    resp = requests.post(url, headers=headers, data=json.dumps(payload))
+    resp = requests.post(url, headers=headers, data=payload, params=params)
     resp.raise_for_status()
-    data = resp.json()
     
     with open(cache_file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-    return data
+        if response_type == 'json':
+            data = resp.json()
+            json.dump(data, f, indent=2)
+            return data
+        else:
+            f.write(resp.text)
+            return resp.text
 
 def create_cached_request_func(config, access_token):
     """

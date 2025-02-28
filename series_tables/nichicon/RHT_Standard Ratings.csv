@@ -1,0 +1,13 @@
+Part Number,Status,Rated Voltage Range (V.D.C),Rated Capacitance Range (μF),Product diameter : D(mm),Product height : L(mm),Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Endurance (h),Weight (g),Tangent of loss angle (tanδ),Leakage Current  (µA),Rated Ripple1(mArms),Rated Ripple2(mArms),ESR(mΩ)（20℃/100kHz）,ESR(mΩ) (-40℃/100kHz）,ESR(mΩ) after endurance test,"ESL(Typ.)（nH,40MHz）",Impedance (mΩ)(-10℃/100kHz),Impedance (mΩ)(20℃/100kHz),Minimum Quantity,Product category,Product summary,Polarity type,Vibration resistant
+RHT0J681MDN1,MP,6.3,680.00,10.0,12.5,-55,125,1000,1.35,0.12,856,1740,5450,12,,,,,,1600,Radial Lead,Hi-Temp.(125degC),Uni-Polar,Normal
+RHT0J821MDN1,MP,6.3,820.00,10.0,12.5,-55,125,1000,1.35,0.12,1033,1740,5450,12,,,,,,1600,Radial Lead,Hi-Temp.(125degC),Uni-Polar,Normal
+RHT0J102MDN1,MP,6.3,1000.00,8.0,11.5,-55,125,1000,0.93,0.12,1260,1600,5200,10,,,,,,2000,Radial Lead,Hi-Temp.(125degC),Uni-Polar,Normal
+RHT1A221MDN1,MP,10.0,220.00,8.0,11.5,-55,125,1000,0.93,0.12,440,1260,3950,17,,,,,,2000,Radial Lead,Hi-Temp.(125degC),Uni-Polar,Normal
+RHT1A331MDN1,MP,10.0,330.00,8.0,11.5,-55,125,1000,0.93,0.12,660,1260,3950,17,,,,,,2000,Radial Lead,Hi-Temp.(125degC),Uni-Polar,Normal
+RHT1A391MDN1,MP,10.0,390.00,8.0,11.5,-55,125,1000,0.93,0.12,780,1260,3950,16,,,,,,2000,Radial Lead,Hi-Temp.(125degC),Uni-Polar,Normal
+RHT1A561MDN1,MP,10.0,560.00,10.0,12.5,-55,125,1000,1.35,0.12,1120,1680,5250,13,,,,,,1600,Radial Lead,Hi-Temp.(125degC),Uni-Polar,Normal
+RHT1C271MDN1,MP,16.0,270.00,10.0,12.5,-55,125,1000,1.35,0.12,864,1520,4750,16,,,,,,1600,Radial Lead,Hi-Temp.(125degC),Uni-Polar,Normal
+RHT1C331MDN1,MP,16.0,330.00,10.0,12.5,-55,125,1000,1.35,0.12,1056,1520,4750,16,,,,,,1600,Radial Lead,Hi-Temp.(125degC),Uni-Polar,Normal
+RHT1C471MDN1,MP,16.0,470.00,10.0,12.5,-55,125,1000,1.35,0.12,1504,1520,4750,16,,,,,,1600,Radial Lead,Hi-Temp.(125degC),Uni-Polar,Normal
+RHT1D151MDN1,MP,20.0,150.00,10.0,12.5,-55,125,1000,1.35,0.12,600,1390,4350,20,,,,,,1600,Radial Lead,Hi-Temp.(125degC),Uni-Polar,Normal
+RHT1V101MDN1,MP,35.0,100.00,10.0,12.5,-55,125,1000,1.35,0.12,700,1040,3250,25,,,,,,1600,Radial Lead,Hi-Temp.(125degC),Uni-Polar,Normal

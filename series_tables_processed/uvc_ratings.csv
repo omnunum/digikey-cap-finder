@@ -1,0 +1,8 @@
+Voltage,Capacitance,ESR 20°C@120Hz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current,Status,Vibration resistant,Weight (g)
+400,4.7,70.547,8,11.5,-40,105,0.25,2000,175,3000,UVC2G4R7MPD,Uni-Polar,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,70,NRND,Normal,1.19
+400,5.6,59.209,8,11.5,-40,105,0.25,2000,190,3000,UVC2G5R6MPD,Uni-Polar,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,70,NRND,Normal,1.19
+400,8.2,40.436,8,16,-40,105,0.25,2000,231,2000,UVC2G8R2MPD,Uni-Polar,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,85,NRND,Normal,1.36
+400,10,33.157,10,12.5,-40,105,0.25,2000,260,2000,UVC2G100MPD,Uni-Polar,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,100,NRND,Normal,1.49
+400,12,27.631,8,20,-40,105,0.25,2000,292,2000,UVC2G120MPD,Uni-Polar,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,120,NRND,Normal,1.66
+400,15,22.105,10,16,-40,105,0.25,2000,340,1800,UVC2G150MPD,Uni-Polar,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,150,NRND,Normal,1.77
+400,18,18.421,10,20,-40,105,0.25,2000,388,1400,UVC2G180MPD,Uni-Polar,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,200,NRND,Normal,2.34

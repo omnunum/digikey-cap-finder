@@ -1,0 +1,9 @@
+Parameter,Specification
+Category temp. range,-40 °C to +135 °C
+Rated voltage range,25 V to 35 V
+Capacitance range,100 μF to 5100 μF
+Capacitance tolerance,±20 % (120 Hz / +20°C)
+Leakage current,I ≦ 0.01 CV (μA) After 2 minutes
+Dissipation factor (tan δ) 25V,0.14 (120 Hz /+20℃)
+Dissipation factor (tan δ) 35V,0.12 (120 Hz /+20℃)
+Additional tan δ for large capacitance,For capacitance value ≧ 1000 μF add 0.02 per every 1000 μF

@@ -1,0 +1,18 @@
+Part Number,Status,Rated Voltage Range (V.D.C),Rated Capacitance Range (μF),Product diameter : D(mm),Product height : L(mm),Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Endurance (h),Weight (g),Tangent of loss angle (tanδ),Leakage Current  (µA),Rated Ripple1(mArms),Rated Ripple2(mArms),ESR(mΩ)（20℃/100kHz）,ESR(mΩ) (-40℃/100kHz）,ESR(mΩ) after endurance test,"ESL(Typ.)（nH,40MHz）",Impedance (mΩ)(-10℃/100kHz),Impedance (mΩ)(20℃/100kHz),Minimum Quantity,Product category,Product summary,Polarity type,Vibration resistant
+PLG0E182MCO1,NRND,2.5,1800.00,8.0,9.0,-55,105,2000,0.75,0.08,900,6000,,9,,,,,,2000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG0E222MDO1,NRND,2.5,2200.00,8.0,12.0,-55,105,2000,0.95,0.08,1100,6700,,8,,,,,,2000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG0E272MDO1,NRND,2.5,2700.00,10.0,13.0,-55,105,2000,1.50,0.08,1350,5560,,8,,,,,,1000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG0E392MDO1,NRND,2.5,3900.00,10.0,13.0,-55,105,2000,1.50,0.08,1950,7000,,8,,,,,,1000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG0G122MCO1,NRND,4.0,1200.00,8.0,9.0,-55,105,2000,0.75,0.08,960,5900,,9,,,,,,2000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG0G182MDO1,NRND,4.0,1800.00,8.0,12.0,-55,105,2000,0.95,0.08,1440,6500,,9,,,,,,2000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG0G272MDO1,NRND,4.0,2700.00,10.0,13.0,-55,105,2000,1.50,0.08,2160,6900,,8,,,,,,1000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG0J821MCO1,NRND,6.3,820.00,8.0,9.0,-55,105,2000,0.75,0.08,1033,5700,,9,,,,,,2000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG0J122MDO1,NRND,6.3,1200.00,8.0,12.0,-55,105,2000,0.95,0.08,1512,6100,,9,,,,,,2000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG0J152MDO1,NRND,6.3,1500.00,10.0,13.0,-55,105,2000,1.50,0.08,1890,6300,,9,,,,,,1000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG0J182MDO1,NRND,6.3,1800.00,10.0,13.0,-55,105,2000,1.50,0.08,2268,6600,,8,,,,,,1000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG1A561MCO1,NRND,10.0,560.00,8.0,9.0,-55,105,2000,0.75,0.08,1120,5100,,11,,,,,,2000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG1A821MDO1,NRND,10.0,820.00,8.0,12.0,-55,105,2000,0.95,0.08,1640,5800,,10,,,,,,2000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG1A122MDO1,NRND,10.0,1200.00,10.0,13.0,-55,105,2000,1.50,0.08,2400,6200,,9,,,,,,1000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG1C331MCO1,NRND,16.0,330.00,8.0,9.0,-55,105,2000,0.75,0.08,1056,4700,,13,,,,,,2000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG1C471MDO1,NRND,16.0,470.00,8.0,12.0,-55,105,2000,0.95,0.08,1504,5400,,11,,,,,,2000,Radial Lead,Hi-Cap.,Uni-Polar,Normal
+PLG1C821MDO1,NRND,16.0,820.00,10.0,13.0,-55,105,2000,1.50,0.08,2624,5600,,11,,,,,,1000,Radial Lead,Hi-Cap.,Uni-Polar,Normal

@@ -1,0 +1,9 @@
+Parameter,Value
+Category temp. range,-25 °C to +105 °C
+Rated voltage range,160 V to 450 V
+Capacitance range,10 μF to 330 μF
+Capacitance tolerance,±20 % (120 Hz / +20°C)
+Leakage current,I ≦ 0.06 CV +10 (μA) After 2 minutes application of rated working voltage at +20 °C
+Endurance duration ø10,8000 h
+Endurance duration ø12.5 to ø18,10000 h
+Shelf life conditions,After storage for 1000 h at +105 °C±2 °C with no voltage applied and then being stabilized at +20 °C capacitors shall meet the limits specified in endurance

@@ -1,0 +1,8 @@
+Part Number,Status,Rated Voltage Range (V.D.C),Rated Capacitance Range (μF),Product diameter : D(mm),Product height : L(mm),Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Endurance (h),Weight (g),Tangent of loss angle (tanδ),Leakage Current  (µA),Rated Ripple1(mArms),Rated Ripple2(mArms),ESR(mΩ)（20℃/100kHz）,ESR(mΩ) (-40℃/100kHz）,ESR(mΩ) after endurance test,"ESL(Typ.)（nH,40MHz）",Impedance (mΩ)(-10℃/100kHz),Impedance (mΩ)(20℃/100kHz),Minimum Quantity,Product category,Product summary,Polarity type,Vibration resistant
+UVC2G4R7MPD,NRND,400.0,4.70,8.0,11.5,-40,105,2000,1.19,0.25,175,70,,,,,,,,3000,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,Uni-Polar,Normal
+UVC2G5R6MPD,NRND,400.0,5.60,8.0,11.5,-40,105,2000,1.19,0.25,190,70,,,,,,,,3000,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,Uni-Polar,Normal
+UVC2G8R2MPD,NRND,400.0,8.20,8.0,16.0,-40,105,2000,1.36,0.25,231,85,,,,,,,,2000,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,Uni-Polar,Normal
+UVC2G100MPD,NRND,400.0,10.00,10.0,12.5,-40,105,2000,1.49,0.25,260,100,,,,,,,,2000,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,Uni-Polar,Normal
+UVC2G120MPD,NRND,400.0,12.00,8.0,20.0,-40,105,2000,1.66,0.25,292,120,,,,,,,,2000,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,Uni-Polar,Normal
+UVC2G150MPD,NRND,400.0,15.00,10.0,16.0,-40,105,2000,1.77,0.25,340,150,,,,,,,,1800,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,Uni-Polar,Normal
+UVC2G180MPD,NRND,400.0,18.00,10.0,20.0,-40,105,2000,2.34,0.25,388,200,,,,,,,,1400,Radial Lead,Hi-Volt. Ultra-Minitualized For Adapters,Uni-Polar,Normal

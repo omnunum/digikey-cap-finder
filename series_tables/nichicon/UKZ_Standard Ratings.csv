@@ -1,0 +1,23 @@
+Part Number,Status,Rated Voltage Range (V.D.C),Rated Capacitance Range (μF),Product diameter : D(mm),Product height : L(mm),Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Endurance (h),Weight (g),Tangent of loss angle (tanδ),Leakage Current  (µA),Rated Ripple1(mArms),Rated Ripple2(mArms),ESR(mΩ)（20℃/100kHz）,ESR(mΩ) (-40℃/100kHz）,ESR(mΩ) after endurance test,"ESL(Typ.)（nH,40MHz）",Impedance (mΩ)(-10℃/100kHz),Impedance (mΩ)(20℃/100kHz),Minimum Quantity,Product category,Product summary,Polarity type,Vibration resistant
+UKZ1E330MPM,EOL,25.0,33.00,8.0,11.5,-40,85,1000,1.19,0.12,8,,,,,,,,,3000,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1E470MPM,EOL,25.0,47.00,10.0,12.5,-40,85,1000,1.49,0.12,12,,,,,,,,,2000,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1E101MPM,EOL,25.0,100.00,10.0,16.0,-40,85,1000,1.77,0.12,25,,,,,,,,,1800,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1E221MHM,EOL,25.0,220.00,12.5,20.0,-40,85,1000,3.43,0.12,55,,,,,,,,,1000,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1E331MHM,EOL,25.0,330.00,12.5,25.0,-40,85,1000,4.56,0.12,83,,,,,,,,,800,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1E471MHM,EOL,25.0,470.00,16.0,25.0,-40,85,1000,8.20,0.12,118,,,,,,,,,400,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1E102MHM,EOL,25.0,1000.00,16.0,35.5,-40,85,1000,11.80,0.12,250,,,,,,,,,300,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1H220MPM,EOL,50.0,22.00,8.0,11.5,-40,85,1000,1.19,0.08,11,,,,,,,,,3000,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1H330MPM,EOL,50.0,33.00,10.0,12.5,-40,85,1000,1.49,0.08,17,,,,,,,,,2000,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1H470MPM,EOL,50.0,47.00,10.0,16.0,-40,85,1000,1.77,0.08,24,,,,,,,,,1800,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1H101MHM,EOL,50.0,100.00,12.5,20.0,-40,85,1000,3.43,0.08,50,,,,,,,,,1000,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1H221MHM,EOL,50.0,220.00,16.0,25.0,-40,85,1000,8.20,0.08,110,,,,,,,,,400,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1H331MHM,EOL,50.0,330.00,16.0,30.5,-40,85,1000,9.60,0.08,165,,,,,,,,,300,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1H471MHM,EOL,50.0,470.00,16.0,35.5,-40,85,1000,11.80,0.08,235,,,,,,,,,300,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ1H102MHM,EOL,50.0,1000.00,18.0,40.0,-40,85,1000,17.70,0.08,500,,,,,,,,,200,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ2A100MPM,EOL,100.0,10.00,8.0,11.5,-40,85,1000,1.19,0.07,10,,,,,,,,,3000,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ2A220MPM,EOL,100.0,22.00,10.0,16.0,-40,85,1000,1.77,0.07,22,,,,,,,,,1800,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ2A330MPM,EOL,100.0,33.00,10.0,20.0,-40,85,1000,2.34,0.07,33,,,,,,,,,1400,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ2A470MHM,EOL,100.0,47.00,12.5,20.0,-40,85,1000,3.43,0.07,47,,,,,,,,,1000,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ2A101MHM,EOL,100.0,100.00,16.0,25.0,-40,85,1000,8.20,0.07,100,,,,,,,,,400,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ2A221MHM,EOL,100.0,220.00,16.0,35.5,-40,85,1000,11.80,0.07,220,,,,,,,,,300,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal
+UKZ2A331MHM,EOL,100.0,330.00,18.0,35.5,-40,85,1000,14.20,0.07,330,,,,,,,,,250,Radial Lead,Premium Grade For Audio,Uni-Polar,Normal

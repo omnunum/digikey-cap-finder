@@ -1,0 +1,9 @@
+Part Number,Status,Rated Voltage Range (V.D.C),Rated Capacitance Range (μF),Product diameter : D(mm),Product height : L(mm),Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Endurance (h),Weight (g),Tangent of loss angle (tanδ),Leakage Current  (µA),Rated Ripple1(mArms),Rated Ripple2(mArms),ESR(mΩ)（20℃/100kHz）,ESR(mΩ) (-40℃/100kHz）,ESR(mΩ) after endurance test,"ESL(Typ.)（nH,40MHz）",Impedance (mΩ)(-10℃/100kHz),Impedance (mΩ)(20℃/100kHz),Minimum Quantity,Product category,Product summary,Polarity type,Vibration resistant
+UBR2W390MND,NEW,450.0,39.00,12.5,31.5,-40,125,5000,6.01,0.24,802,360,,,,,,,,600,Radial Lead,,Uni-Polar,Normal
+UBR2W500MND,NEW,450.0,50.00,12.5,35.5,-40,125,5000,7.06,0.24,1000,400,,,,,,,,500,Radial Lead,,Uni-Polar,Normal
+UBR2W600MND,NEW,450.0,60.00,12.5,40.0,-40,125,5000,7.57,0.24,1180,500,,,,,,,,400,Radial Lead,,Uni-Polar,Normal
+UBR2W101MND,NEW,450.0,100.00,18.0,31.5,-40,125,5000,13.80,0.24,1900,780,,,,,,,,300,Radial Lead,,Uni-Polar,Normal
+UBR2W121MND,NEW,450.0,120.00,18.0,36.0,-40,125,5000,16.90,0.24,2260,850,,,,,,,,250,Radial Lead,,Uni-Polar,Normal
+UBR2W141MND,NEW,450.0,140.00,18.0,40.0,-40,125,5000,17.70,0.24,2620,980,,,,,,,,200,Radial Lead,,Uni-Polar,Normal
+UBR2W161MND,NEW,450.0,160.00,18.0,46.0,-40,125,5000,20.90,0.24,2980,1120,,,,,,,,200,Radial Lead,,Uni-Polar,Normal
+UBR2W181MND,NEW,450.0,180.00,18.0,50.0,-40,125,5000,23.00,0.24,3340,1230,,,,,,,,250,Radial Lead,,Uni-Polar,Normal

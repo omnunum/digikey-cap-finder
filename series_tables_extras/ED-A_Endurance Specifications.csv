@@ -1,0 +1,7 @@
+Parameter,Specification
+Duration ø10,8000 h
+Duration ø12.5 to ø18,10000 h
+Test conditions,After following life test with DC voltage and +105 °C±2 °C ripple current value applied (The sum of DC and ripple peak voltage shall not exceed the rated working voltage)
+Capacitance change,Within ±20 % of the initial value
+Dissipation factor (tan δ),≦ 200 % of the initial limit
+DC leakage current,Within the initial limit

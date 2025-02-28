@@ -1,0 +1,5 @@
+Voltage,Capacitance,ESR 20°C@120Hz,ESR 20°C@100kHz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,ESR -40°C@100kHz,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current,Ripple Current_1,Status,Vibration resistant,Weight (g)
+25,7800,0.044,23,18,30.5,-40,135,0.26,190,3000,5850,300,UXY1E782MHW,Uni-Polar,Radial Lead,Vibration Resistance(125/135degC),5380,3330,MP,Vibration resistant,13.1
+25,11000,0.041,19,18,40,-40,135,0.34,130,3000,8250,200,UXY1E113MHW,Uni-Polar,Radial Lead,Vibration Resistance(125/135degC),6800,3900,MP,Vibration resistant,17.7
+35,5000,0.053,23,18,30.5,-40,135,0.2,190,3000,5250,300,UXY1V502MHW,Uni-Polar,Radial Lead,Vibration Resistance(125/135degC),5380,3330,MP,Vibration resistant,13.1
+35,7300,0.044,19,18,40,-40,135,0.24,130,3000,7665,200,UXY1V732MHW,Uni-Polar,Radial Lead,Vibration Resistance(125/135degC),6800,3900,MP,Vibration resistant,17.7

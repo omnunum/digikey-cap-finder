@@ -7,7 +7,6 @@ from jinja2 import Environment, FileSystemLoader
 
 from helpers import (
     get_parameter_value,
-    make_cached_request,
     get_variation_unit_price,
     parse_ripple_hf,
     parse_lifetime_temp,
@@ -58,17 +57,6 @@ def compute_composite_scores(products, config, source_diameter, quantity=1, tigh
     
     raw_items = []
     for prod in products:
-        if prod.get("MarketPlace", False):
-            continue
-        
-        available = prod.get("QuantityAvailable")
-        try:
-            available = int(available)
-        except (ValueError, TypeError):
-            continue
-        if available < quantity:
-            continue
-        
         variation_price = get_variation_unit_price(prod)
         if variation_price is None:
             continue
@@ -119,10 +107,10 @@ def compute_composite_scores(products, config, source_diameter, quantity=1, tigh
         np_ = i["raw_price"] / max_price
         nv = i["raw_voltage"] / max_voltage
         composite = (
-            config.weight_ripple * nr +
-            config.weight_lifetime * nl -
-            config.weight_price * np_ * quantity_factor +
-            config.weight_voltage * nv
+            config.weight_ripple * nr
+            + config.weight_lifetime * nl
+            - config.weight_price * np_ * quantity_factor
+            + config.weight_voltage * nv
         )
         threshold = source_diameter if tight_fit else source_diameter * 1.25
         if i["product_diameter"] is not None and i["product_diameter"] > threshold:
@@ -134,6 +122,7 @@ def compute_composite_scores(products, config, source_diameter, quantity=1, tigh
     
     scored.sort(key=lambda x: x["composite"], reverse=True)
     return scored
+
 
 def search_capacitor(capacitance, voltage, source_diameter, cached_request, config: Config, quantity, tight_fit):
     payload = build_search_payload(capacitance, config, voltage=voltage)
@@ -147,29 +136,38 @@ def search_capacitor(capacitance, voltage, source_diameter, cached_request, conf
     if not products:
         print(f"No products found for {payload['Keywords']}")
         return None
-    
+
     scored = compute_composite_scores(products, config, source_diameter, quantity, tight_fit)
     if not scored:
         print(f"No eligible products for {payload['Keywords']}")
         return None
     
-    best = scored[0]
-    runner_ups = scored[1:]
-    
+
     def create_product_dict(prod_data):
-        diam_text = get_parameter_value(prod_data["prod"], "Size / Dimension")
-        ht_text = get_parameter_value(prod_data["prod"], "Height - Seated (Max)")
+        product = prod_data["prod"]
+        available = product.get("QuantityAvailable")
+        try:
+            available = int(available)
+        except (ValueError, TypeError):
+            return
+        if available < quantity:
+            return
+
+        # ensure product has at least one single MOQ variation
+        part_num = product.get("ManufacturerProductNumber", "N/A")
+        for variation in product["ProductVariations"]:
+            if variation.get("MinimumOrderQuantity") == 1:
+                part_num = variation.get("DigiKeyProductNumber", part_num)
+                break
+        else:
+            return
+        
+        diam_text = get_parameter_value(product, "Size / Dimension")
+        ht_text = get_parameter_value(product, "Height - Seated (Max)")
         diam = parse_diameter(diam_text)
         height = parse_height(ht_text)
         
-        product = prod_data["prod"]
-        product_url = product.get("ProductUrl", "")
-        part_num = product.get("ManufacturerProductNumber", "N/A")
-        if "ProductVariations" in product:
-            for variation in product["ProductVariations"]:
-                if variation.get("MinimumOrderQuantity") == 1:
-                    part_num = variation.get("DigiKeyProductNumber", part_num)
-                    break
+        product_url = product.get("ProductUrl", "")        
         customer_ref = ""
         if product_url:
             parts = product_url.rstrip("/").split("/")
@@ -193,10 +191,13 @@ def search_capacitor(capacitance, voltage, source_diameter, cached_request, conf
             "Composite": round(prod_data["composite"], 2)
         }
     
-    best_dict = create_product_dict(best)
-    runner_up_dicts = [create_product_dict(ru) for ru in runner_ups]
-    
-    return {"best": best_dict, "runner_ups": runner_up_dicts}
+    formatted_products = [
+        create_product_dict(p) 
+        for p in scored 
+        if create_product_dict(p) is not None
+    ]
+
+    return formatted_products
 
 def merge_with_higher_voltage(specs_data):
     from collections import defaultdict
@@ -253,7 +254,7 @@ def deduplicate_specs_data(specs_data):
     for item in specs_data:
         part = item["best"]["PartNumber"]
         label = item["best"].get("CustomerReference", "")
-        
+
         if part not in deduped:
             deduped[part] = item.copy()
             continue
@@ -315,10 +316,10 @@ def main():
         weight_price=1.0,
         weight_lifetime=2.0,
         weight_diameter_penalty=2.0,
-        weight_voltage=1.0,
+        weight_voltage=2.0,
         allow_merge_with_higher_voltage=False,
         opportunistic_voltage_search=True,
-        cache_dir=os.path.join(script_dir, "digikey_cache"),
+        cache_dir=os.path.join(script_dir, "cache"),
         csv_input=os.path.join(script_dir, "cap_list.csv"),
         csv_output=os.path.join(script_dir, "digikey_best_caps_final.csv"),
         html_output=os.path.join(script_dir, "digikey_best_caps_final.html")
@@ -375,8 +376,7 @@ def main():
             for cand in candidate_voltages:
                 out = search_capacitor(cap, cand, src_dia, cached_request, config, qty, tight_fit)
                 if out is not None:
-                    all_candidates.append(out["best"])
-                    all_candidates.extend(out["runner_ups"])
+                    all_candidates.extend(out)
             if not all_candidates:
                 while (out := search_capacitor(cap, volt, src_dia, cached_request, config, qty, tight_fit)) is None:
                     print(f"Trying to search for next nearest voltage for {cap}µF, {volt}V")
@@ -384,7 +384,7 @@ def main():
                     if not next_vs:
                         break
                     volt = next_vs[0]
-                all_candidates = [out["best"]] + out["runner_ups"]
+                all_candidates.extend(out)
             all_candidates.sort(key=lambda x: x["Composite"], reverse=True)
             best_item = all_candidates[0]
             runner_ups = all_candidates[1:11]
@@ -395,8 +395,8 @@ def main():
                 if not next_vs:
                     break
                 volt = next_vs[0]
-            best_item = out["best"]
-            runner_ups = out["runner_ups"][:10]
+            best_item = out[0]
+            runner_ups = out[1:11]
         
         best_item["Quantity"] = qty
         best_item["CustomerReference"] = labels
