@@ -171,102 +171,173 @@ def main():
     # System prompt for table extraction
     system_prompt = """
 Directive:
-- You are an AI model specifically designed to extract tables from PDFs efficiently and completely by responding with tagged data.
+    - You are an AI model specifically designed to extract tables from PDFs efficiently and completely by responding with tagged data.
 
 Critical Requirements:
-- Never repeat values you have already extracted. Always extract new values.
-- While adhering to the previous uniqueness rule, maximize your response size by extracting as much as possible from the document in each response.
-- When a table spans multiple pages, extract ALL rows before moving to the next table
-- Output <end_of_document> when you have reached the end of all tables. Do not use any other way to communicate you have extracted all data.
-- Do not output any text outside of <title> and <data> tags.  I do not want any other communication outside of tags.
-- Do not hallucinate tables that don't exist, read until the end of the document and then just stop.
-- Never summarize or aggregate, extract exact values only
+    - Never repeat values you have already extracted. Always extract new values.
+    - While adhering to the previous uniqueness rule, maximize your response size by extracting as much as possible from the document in each response.
+    - When a table spans multiple pages, extract ALL rows before moving to the next table
+    - Output <end_of_document> when you have reached the end of all tables. Do not use any other way to communicate you have extracted all data.
+    - Do not output any text outside of <title> and <data> tags.  I do not want any other communication outside of tags.
+    - Do not hallucinate tables that don't exist, read until the end of the document and then just stop.
+    - Never summarize or aggregate, extract exact values only
 
+Response Formatting Details:
+    - Each table must be tagged: <title>{name}</title> and <data>{data}</data>
+    - Do not change the table title based on the voltage (like "Capacitor Characteristics 16V") or whether or not its a continuation (like "Capacitor Characteristics (Continued)").  
+    - Use CSV format for the data
+    - Quote all names of the columns
+    - Include all columns in the table *in the order they are found in the input document*
 
-Table Formatting Details:
-- Each table must be tagged: <title>{name}</title> and <data>{data}</data>
-- Include all columns in the table *in the order they are found in the input document*
-- Do not change the table title based on the voltage (like "Capacitor Characteristics 16V") or whether or not its a continuation (like "Capacitor Characteristics (Continued)").  
-- Use the lowest/deepest level for column titles in nested columns
-- For values spanning multiple rows, broadcast them to all applicable rows when flattening
-- Use CSV format for the data
-- Quote all names of the columns
+How to Read from Tables Correctly:
+    - When column names are formatted using vertically nested title cells, combine the titles. 
+        - The upper cells will have the general name of the metric and the lowest/deepest level will usually have the units.
+    - For values spanning multiple rows, broadcast them to all applicable rows when flattening
+    - As you extract the table in parts across multiple pages, make sure the columns are all in the same order.
+    - Include all columns and values from the input tables in the output.
+    - Be careful to make sure that the amount of values and column names match, there should not be any fully empty columns.  
+    - There are not multiple columns with the same name, if it looks like there are its just the same column name in a different group of columns with different values. 
+        - We want to combine these columns from different groups into the output "vertically" using the same column names.  The resulting table should be much "taller" than the input.
+    - Some of the specified columns may not be present in all tables, in that case do not specify them in the output.
+    - Pay attention to details specified in foot notes or in relevant supplementary tables, and include these details in the column names.  
+        - Examples are temp and frequency of ratings.
 
 Additional Instructions:
-- Never ask for permission to continue, keep extracting until you reach the document end
-- If you reach a response limit mid-table, complete the current row and indicate table continuation
-- Process tables sequentially but maximize data extraction in each response
+    - Never ask for permission to continue, keep extracting until you reach the document end
+    - If you reach a response limit mid-table, complete the current row and indicate table continuation
+    - Process tables sequentially but maximize data extraction in each response
 """
     configuration = {
-#         "chemi-con": {
-#             "model": ModelType.SONNET,
-#             "prompt": """
-# Please extract the following tables:
-# - Optional: "Dissipation Factor (tan δ)" (on the first page if it exists)
-# - Required: "STANDARD RATINGS" (on subsequent pages)
-# """
-#         },
+        "chemi-con": {
+            "model": ModelType.SONNET,
+            "prompt": """
+Please extract the following tables:
+- Optional: "Dissipation Factor (tan δ)" (on the first page if it exists)
+- Required: "STANDARD RATINGS" (on subsequent pages), possible columns include (in no particular order and not exhaustive)
+    - WV (Vdc) 
+    - Cap (µF) 
+    - Case size φD×L(mm) 
+    - tanδ 
+    - Rated ripple current (mArms/ {temp}, {frequency}) 
+    - Part No.
+    - ESR (Ω max./{frequency}) {temp}
+Notes about "STANDARD RATINGS" table:
+    - For some of the ratings, there are notes about the temp and frequency earlier in the document.  Please take those notes and integrate them into the relevant column names.
+        - For instance, the temp and frequency of the tan value is noted earlier in the document in the dissipation factor table.
+"""
+        },
         "kemet": {
             "model": ModelType.SONNET,
             "prompt": """
 Please extract the following table:
 - Required: "Table 1" (and all continuation tables)
-  - possible columns include (in no particular order and not exhaustive)
-    - Rated Voltage
-    - Surge Voltage
-    - Rated Capacitance
-    - Case Size
-    - DF
-    - RC
-    - Z
-    - ESR
-    - LC
-    - Part Number
+    - possible columns include (in no particular order and not exhaustive)
+        - Rated Voltage
+        - Surge Voltage
+        - Rated Capacitance
+        - Case Size
+        - DF
+        - RC
+        - Z
+        - ESR
+        - LC
+        - Part Number
 
 Notes about "Table 1":
-- Name the table "Standard Ratings" in the output.
-- Do not extract any other tables.
-- Do not specify if the table is continued in your response, just name them all "Standard Ratings".
-- As you extract the table in parts across multiple pages, make sure they are all in the same order.
-- Include all columns and values from the input tables in the output.
-- Any column names in the input tables that are not specified above should be taken as-is.
-- Be careful to make sure that the amount of values and column names match, there should not be any empty columns.  
-- Some of the specified columns may not be present in all tables, in that case do not specify them in the output.
+    - Name the table "Standard Ratings" in the output.
+    - Do not extract any other tables.
+    - Do not specify if the table is continued in your response, just name them all "Standard Ratings".
+    - As you extract the table in parts across multiple pages, make sure they are all in the same order.
+    - Include all columns and values from the input tables in the output.
+    - Any column names in the input tables that are not specified above should be taken as-is.
+    - Be careful to make sure that the amount of values and column names match, there should not be any empty columns.  
+    - Some of the specified columns may not be present in all tables, in that case do not specify them in the output.
 """
         }, 
         "elna": {
             "model": ModelType.SONNET,
             "prompt": """
 Please extract the following tables:
-- Optional: "Tangent of loss angle (tan δ)"
-- Required: "Standard Ratings" 
-  - Required columns (always present): Rated voltage (V),Rated capacitance (μF),Case øD x L
-  - Optional columns (non exhaustive): Size Code,ESR(Ω max.) 20°C,Size Code,ESR(Ω max.) -40°C,Rated ripple current (mArms)
+    - Optional: "Tangent of loss angle (tan δ)"
+    - Required: "Standard Ratings" 
+        - Required columns (always present): 
+            - Part No.
+            - Rated voltage (V)
+            - Rated capacitance (μF)
+            - Case øD x L
+        - Optional columns (non exhaustive): 
+            - Size Code,ESR(Ω max.) {temp}
+            - Rated ripple current (mArms) {frequency}
+            - (tan δ) {temp} {frequency}
 
 Do not extract any other tables.
 
-Note about  "Standard Ratings" table: 
-- Importantly, Rated Voltage looks like a column header at the top of the table but is actually a value like "25 (1T)" we dont want the voltage code (1T), we just the value 25.  
-- Each voltage rating applies to a group of columns.  Each group has the same columes, and we want all of the data for those columns to be combined across groups.
-- There are not multiple columns with the same name, if it looks like there are its just the same column name with different values. The resulting table should be much "taller" than the input.
-- Rated Capacitance is on the left side of the table and it covers all groups of columns for those rows.
-- Below the Standard Ratings table, there are notes about the temp and frequency of some of the ratings.  Please take those notes and integrate them into the relevant column names.
+Notes about "Standard Ratings" table new table formats: 
+    - This style of table can be determined by the line on the first page "CAT.No.2023/2024E" (or some other recent year)
+    - Importantly, Rated Voltage looks like a column header at the top of the table but is actually a value like "25 (1T)" we dont want the voltage code (1T), we just the value 25.  
+    - Each voltage rating applies to a group of columns.  Each group has the same columns, and we want all of the data for those columns to be combined across groups.
+    - Rated Capacitance is on the left side of the table and it covers all groups of columns for those rows.
+
+Notes about "Standard Ratings" table old table formats:
+    - This style of table can be determined ty the line on the first page "This catalog printed in U.S.A. on 1/2001." 
+        - The exact year will not be the same but it will be much older than a few years ago.
+    - The voltage colun will come from the rows in the table that only contain the voltage value and none of the other column values.
+        - Take the voltage value and apply it to subsequent rows until we see a new voltage value.
+
+For all formats:
+    - Below the Standard Ratings table, there are notes about the temp and frequency of some of the ratings.  
+        - Please take those notes and integrate them into the relevant column names.
+    - Additionally, rating context can be found in tables that come before the Standard Ratings table (like with the tan value temp and frequency)
 """},
-        # "panasonic": {
-        #     "model": ModelType.SONNET,
-        #     "prompt": """"""
-        # },
-#         "rubycon": {
-#             "model": ModelType.SONNET,
-#             "prompt": """
-# Please extract the following tables:
-# - Optional: "Dissipation Factor (MAX)"
-#   - columns include "Rated Voltage" and "tan δ"
-# - Required: "STANDARD SIZE" 
-#   - columns include Rated voltage (V),Rated capacitance (μF),Size øD x L,Rated ripple current (mArms),ESR,Impedance
-# Tables will not always have these columns, but if they are present, please extract them.
-# """
-#         },
+        "panasonic": {
+            "model": ModelType.SONNET,
+            "prompt": """
+Please extract the following tables:
+- Optional: "Dissipation Factor (MAX)" 
+    - Required columns (always present): 
+        - Rated Voltage
+        - tan δ {temp} {frequency}
+- Required: "Characteristics list" 
+    - Required columns (always present): 
+        - Rated voltage (V)
+        - Rated capacitance (μF)
+        - Case Size (mm) øD 
+        - Case Size (mm) L
+        - Part No.
+    - Optional columns (non exhaustive):
+        - Ripple current (mArms) {temp} {frequency}
+        - ESR {temp} {frequency} 
+        - tan δ {temp} {frequency}
+        - Endurance (h) {temp}
+        - Impedance {temp} {frequency}
+        - Lead diameter (ød)
+        - Lead space straight
+        - Lead space Taping ✽B
+        - Lead space Taping ✽H
+        - Min packaging qty Straight leads
+        - Min packaging qty Taping
+"""
+        },
+        "rubycon": {
+            "model": ModelType.SONNET,
+            "prompt": """
+Please extract the following tables:
+- Optional: "Dissipation Factor (MAX)" 
+    - Required columns (always present): 
+        - Rated Voltage
+        - tan δ {temp} {frequency}
+- Required: "STANDARD SIZE" 
+    - Required columns (always present): 
+        - Rated voltage (V)
+        - Rated capacitance (μF)
+        - Size øD x L
+    - Optional columns (non exhaustive):
+        - Rated ripple current (mArms) {temp} {frequency}
+        - ESR {temp} {frequency} 
+        - Impedance {temp} {frequency}
+Tables will not always have these columns, but if they are present, please extract them.
+"""
+        },
     }
     for manufacturor, config in configuration.items():
         # Initialize extractor
