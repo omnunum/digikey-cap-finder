@@ -68,13 +68,16 @@ def generate_esr_coverage_report(output_base_dir: str) -> None:
     
     # Initialize counters and data structures
     total_files = 0
-    files_with_computed_esr = 0
-    files_with_other_esr = 0
+    files_with_low_freq_esr = 0  # ESR at 120Hz
+    files_with_high_freq_esr = 0  # ESR at higher frequencies
     files_with_both = 0
     files_with_null_esr = 0
     
     esr_columns_by_file = {}
     null_esr_counts = {}
+    
+    # Standard low frequency ESR column
+    low_freq_esr_col = 'ESR 20°C@120Hz'
     
     # Analyze each file
     for file_path in csv_files:
@@ -82,29 +85,32 @@ def generate_esr_coverage_report(output_base_dir: str) -> None:
             df = pd.read_csv(file_path)
             total_files += 1
             
-            # Check for computed ESR
-            has_computed_esr = 'ESR 20°C@120Hz' in df.columns
+            # Get all ESR columns
+            esr_cols = [col for col in df.columns if 'ESR' in col]
             
-            # Check for other ESR columns
-            other_esr_cols = [col for col in df.columns if 'ESR' in col and col != 'ESR 20°C@120Hz']
-            has_other_esr = len(other_esr_cols) > 0
+            # Check for low frequency ESR (120Hz)
+            has_low_freq_esr = low_freq_esr_col in df.columns
+            
+            # Check for high frequency ESR columns (not 120Hz)
+            high_freq_esr_cols = [col for col in esr_cols if col != low_freq_esr_col]
+            has_high_freq_esr = len(high_freq_esr_cols) > 0
             
             # Update counters
-            if has_computed_esr:
-                files_with_computed_esr += 1
+            if has_low_freq_esr:
+                files_with_low_freq_esr += 1
                 
-                # Count null values in computed ESR
-                null_count = df['ESR 20°C@120Hz'].isna().sum()
+                # Count null values in low frequency ESR
+                null_count = df[low_freq_esr_col].isna().sum()
                 total_count = len(df)
                 if null_count > 0:
                     files_with_null_esr += 1
                     null_esr_counts[file_path.stem] = (null_count, total_count)
             
-            if has_other_esr:
-                files_with_other_esr += 1
-                esr_columns_by_file[file_path.stem] = other_esr_cols
+            if has_high_freq_esr:
+                files_with_high_freq_esr += 1
+                esr_columns_by_file[file_path.stem] = high_freq_esr_cols
             
-            if has_computed_esr and has_other_esr:
+            if has_low_freq_esr and has_high_freq_esr:
                 files_with_both += 1
                 
         except Exception as e:
@@ -112,21 +118,23 @@ def generate_esr_coverage_report(output_base_dir: str) -> None:
     
     # Print summary statistics
     print(f"\nTotal files analyzed: {total_files}")
-    print(f"Files with computed ESR: {files_with_computed_esr} ({files_with_computed_esr/total_files*100:.1f}%)")
-    print(f"Files with other ESR columns: {files_with_other_esr} ({files_with_other_esr/total_files*100:.1f}%)")
-    print(f"Files with both computed and other ESR: {files_with_both} ({files_with_both/total_files*100:.1f}%)")
-    print(f"Files with null computed ESR values: {files_with_null_esr} ({files_with_null_esr/files_with_computed_esr*100:.1f}% of files with computed ESR)")
+    print(f"Files with low frequency ESR (120Hz): {files_with_low_freq_esr} ({files_with_low_freq_esr/total_files*100:.1f}%)")
+    print(f"Files with high frequency ESR: {files_with_high_freq_esr} ({files_with_high_freq_esr/total_files*100:.1f}%)")
+    print(f"Files with both low and high frequency ESR: {files_with_both} ({files_with_both/total_files*100:.1f}%)")
+    
+    if files_with_low_freq_esr > 0:
+        print(f"Files with null low frequency ESR values: {files_with_null_esr} ({files_with_null_esr/files_with_low_freq_esr*100:.1f}% of files with low freq ESR)")
     
     # Print details about files with null ESR values
     if null_esr_counts:
-        print("\nFiles with null computed ESR values:")
+        print("\nFiles with null low frequency ESR values:")
         print("-" * 60)
         for file_name, (null_count, total_count) in sorted(null_esr_counts.items(), key=lambda x: x[1][0]/x[1][1], reverse=True):
             print(f"{file_name}: {null_count}/{total_count} values null ({null_count/total_count*100:.1f}%)")
     
-    # Print details about other ESR columns
+    # Print details about high frequency ESR columns
     if esr_columns_by_file:
-        print("\nFiles with other ESR columns:")
+        print("\nFiles with high frequency ESR columns:")
         print("-" * 60)
         for file_name, columns in sorted(esr_columns_by_file.items()):
             print(f"{file_name}: {', '.join(columns)}")

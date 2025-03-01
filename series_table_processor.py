@@ -364,8 +364,18 @@ def parse_and_standardize_file(input_path: str) -> Optional[FileInfo]:
     
     return file_info
 
-def calculate_low_frequency_esr(input_df: pd.DataFrame) -> pd.DataFrame:
-    """Compute ESR from Dissipation Factor and Capacitance."""
+def calculate_esr_from_dissipation(input_df: pd.DataFrame, frequency: float = 120.0, temperature: int = 20) -> pd.DataFrame:
+    """
+    Compute ESR from Dissipation Factor and Capacitance at a specified frequency.
+    
+    Args:
+        input_df: DataFrame containing 'Dissipation Factor' and 'Capacitance' columns
+        frequency: Frequency in Hz to calculate ESR at (default: 120Hz)
+        temperature: Temperature in °C to include in the column name (default: 20)
+        
+    Returns:
+        A new DataFrame with added ESR column
+    """
     # Create a copy of the DataFrame to avoid modifying the input
     df = input_df.copy()
     
@@ -373,23 +383,41 @@ def calculate_low_frequency_esr(input_df: pd.DataFrame) -> pd.DataFrame:
         # ESR = DF / (2π × f × C)
         # where:
         # - DF is Dissipation Factor (unitless)
-        # - f is frequency in Hz (120Hz standard for electrolytic capacitors)
+        # - f is frequency in Hz
         # - C is capacitance in Farads
         # 
         # Since capacitance values in datasheets are typically in microfarads (μF),
         # we need to convert to Farads by multiplying by 1e-6 (1 μF = 10^-6 F)
         def compute_esr_value(row):
             if pd.notnull(row['Dissipation Factor']) and pd.notnull(row['Capacitance']) and row['Capacitance'] > 0:
-                return round(row['Dissipation Factor'] / (2 * 3.14159 * 120 * row['Capacitance'] * 1e-6), 3)
+                return round(row['Dissipation Factor'] / (2 * 3.14159 * frequency * row['Capacitance'] * 1e-6), 3)
             else:
                 return None
         
-        df['ESR 20°C@120Hz'] = df.apply(compute_esr_value, axis=1)
+        # Format frequency for column name (e.g., "120Hz" or "100kHz")
+        freq_str = f"{int(frequency)}Hz" if frequency < 1000 else f"{frequency/1000:.0f}kHz"
+        
+        # Format temperature for column name (e.g., "20°C" or "-40°C")
+        temp_str = f"{temperature}°C"
+        
+        column_name = f"ESR {temp_str}@{freq_str}"
+        
+        df[column_name] = df.apply(compute_esr_value, axis=1)
     
     return df
 
 def process_ratings_with_dissipation(ratings_df: pd.DataFrame, dissipation_df: pd.DataFrame) -> pd.DataFrame:
-    """Merge dissipation data into ratings table and compute ESR."""
+    """
+    Process a series that has both ratings and dissipation data.
+    Merges the dissipation data into the ratings table and computes ESR.
+    
+    Args:
+        ratings_df: DataFrame containing ratings data
+        dissipation_df: DataFrame containing dissipation data
+        
+    Returns:
+        DataFrame with merged data and computed ESR
+    """
     # Create copies to avoid modifying the input DataFrames
     ratings_df = ratings_df.copy()
     dissipation_df = dissipation_df.copy()
@@ -408,9 +436,12 @@ def process_ratings_with_dissipation(ratings_df: pd.DataFrame, dissipation_df: p
         how='left'
     )
      
-    merged_df = calculate_low_frequency_esr(merged_df)
-    if merged_df['Dissipation Factor'].isna().any():
-        pass
+    # Calculate ESR at standard frequencies
+    merged_df = calculate_esr_from_dissipation(merged_df, frequency=120.0, temperature=20)
+    
+    # Optionally calculate ESR at 100kHz if needed
+    # merged_df = calculate_esr_from_dissipation(merged_df, frequency=100000.0, temperature=20)
+    
     return merged_df
 
 def process_series_tables_by_type(file_infos: List[FileInfo]) -> List[FileInfo]:
@@ -437,8 +468,8 @@ def process_series_tables_by_type(file_infos: List[FileInfo]) -> List[FileInfo]:
                 # We have both ratings and dissipation, and need to merge in dissipation data
                 ratings_info.df = process_ratings_with_dissipation(ratings_info.df, dissipation_info.df)
             else:
-                # Only ratings data
-                ratings_info.df = calculate_low_frequency_esr(ratings_info.df.copy())
+                # Only ratings data, calculate ESR if dissipation factor is present
+                ratings_info.df = calculate_esr_from_dissipation(ratings_info.df.copy(), temperature=20)
     
     return file_infos
 
