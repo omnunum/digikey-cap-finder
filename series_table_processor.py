@@ -185,15 +185,7 @@ def convert_dissipation_table_to_standard_format(df: pd.DataFrame) -> pd.DataFra
     return melted
 
 def find_csv_files(input_dir: str) -> List[str]:
-    """
-    Find all CSV files in the input directory.
-    
-    Args:
-        input_dir: Directory containing input CSV files
-        
-    Returns:
-        List of paths to CSV files
-    """
+    """Find all CSV files in the input directory."""
     csv_files = []
     for root, _, files in os.walk(input_dir):
         for file in files:
@@ -203,15 +195,7 @@ def find_csv_files(input_dir: str) -> List[str]:
     return csv_files
 
 def remove_empty_columns(input_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Drop columns that are all NaN or empty values.
-    
-    Args:
-        input_df: DataFrame to clean
-        
-    Returns:
-        A new DataFrame with empty columns removed
-    """
+    """Drop columns that are all NaN or empty values."""
     df = input_df.copy()
     
     all_na_cols = [col for col in df.columns if df[col].isna().all()]
@@ -300,12 +284,6 @@ def make_column_names_unique(input_df: pd.DataFrame) -> pd.DataFrame:
     Make column names unique by appending numbers to duplicate names.
     For example, if there are two columns named "Voltage", the second one 
     will be renamed to "Voltage_1".
-    
-    Args:
-        input_df: DataFrame with possibly duplicate column names
-        
-    Returns:
-        A new DataFrame with unique column names
     """
     df = input_df.copy()
     
@@ -387,15 +365,7 @@ def parse_and_standardize_file(input_path: str) -> Optional[FileInfo]:
     return file_info
 
 def calculate_low_frequency_esr(input_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Compute ESR from Dissipation Factor and Capacitance.
-    
-    Args:
-        input_df: DataFrame containing 'Dissipation Factor' and 'Capacitance' columns
-        
-    Returns:
-        A new DataFrame with added 'ESR 20°C@120Hz' column
-    """
+    """Compute ESR from Dissipation Factor and Capacitance."""
     # Create a copy of the DataFrame to avoid modifying the input
     df = input_df.copy()
     
@@ -419,17 +389,7 @@ def calculate_low_frequency_esr(input_df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def process_ratings_with_dissipation(ratings_df: pd.DataFrame, dissipation_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Process a series that has both ratings and dissipation data.
-    Merges the dissipation data into the ratings table and computes ESR.
-    
-    Args:
-        ratings_df: DataFrame containing ratings data
-        dissipation_df: DataFrame containing dissipation data
-        
-    Returns:
-        DataFrame with merged data and computed ESR
-    """
+    """Merge dissipation data into ratings table and compute ESR."""
     # Create copies to avoid modifying the input DataFrames
     ratings_df = ratings_df.copy()
     dissipation_df = dissipation_df.copy()
@@ -454,16 +414,8 @@ def process_ratings_with_dissipation(ratings_df: pd.DataFrame, dissipation_df: p
     return merged_df
 
 def process_series_tables_by_type(file_infos: List[FileInfo]) -> List[FileInfo]:
-    """
-    Second pass: Join dissipation data into ratings tables, standardize values,
-    compute ESR, and reorder columns.
-    
-    Args:
-        file_infos: List of FileInfo objects
-        
-    Returns:
-        List of FileInfo objects to be saved (dissipation files that were merged will have df=None)
-    """
+    """Join dissipation data into ratings tables, standardize values,
+    compute ESR, and reorder columns."""
     series_groups = defaultdict(list)
     for file_info in file_infos:
         series_groups[file_info.series_name].append(file_info)
@@ -491,16 +443,7 @@ def process_series_tables_by_type(file_infos: List[FileInfo]) -> List[FileInfo]:
     return file_infos
 
 def resolve_voltage_ranges_to_specific_values(dissipation_df: pd.DataFrame, ratings_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Expand voltage ranges in dissipation tables by matching with actual voltages from ratings file.
-    
-    Args:
-        dissipation_df: DataFrame containing dissipation data with possible voltage ranges
-        ratings_df: DataFrame containing ratings data with actual voltage values
-        
-    Returns:
-        DataFrame with expanded voltage ranges
-    """
+    """Expand voltage ranges in dissipation tables by matching with actual voltages from ratings file. """
     if 'Voltage' not in ratings_df.columns:
         print("Warning: Ratings file does not contain Voltage column")
         return dissipation_df
@@ -535,12 +478,8 @@ def resolve_voltage_ranges_to_specific_values(dissipation_df: pd.DataFrame, rati
 
 def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
     """
-    Save processed files to the output directory.
-    Also creates a consolidated CSV with only priority columns from all series.
-    
-    Args:
-        file_infos: List of FileInfo objects to save
-        output_dir: Directory for output files
+    Save processed files to the output directory and creates a consolidated CSV 
+    with only priority columns from all series.
     """
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -612,9 +551,7 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
     logger.info(f"Saved {files_saved} files, skipped {files_skipped} files")
 
 def main():
-    """
-    Main function that orchestrates the entire data processing pipeline.
-    """
+    """Main function that orchestrates the entire data processing pipeline."""
     # Configuration
     input_dir = "series_tables"
     output_dir = "series_tables_processed"
