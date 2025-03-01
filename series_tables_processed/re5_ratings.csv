@@ -1,4 +1,4 @@
-Voltage,Capacitance,ESR 20°C@120Hz,ESR 20°C@100kHz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current,Status,Vibration resistant,Weight (g)
-2.5,560,0.237,5,8,8,-55,105,0.1,2000,500,3200,RE50E561MDN1,Uni-Polar,Radial Lead,Ultra-Lo-ESR and Lo-Profile,6300,MP,Normal,0.71
-2.5,820,0.162,5,8,8,-55,105,0.1,2000,512,3200,RE50E821MDN1,Uni-Polar,Radial Lead,Ultra-Lo-ESR and Lo-Profile,6300,MP,Normal,0.71
-4,560,0.237,5,8,8,-55,105,0.1,2000,560,3200,RE50G561MDN1,Uni-Polar,Radial Lead,Ultra-Lo-ESR and Lo-Profile,6300,MP,Normal,0.71
+Voltage,Capacitance,ESR 20°C@120Hz,ESR 20°C@100kHz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current 105°C@100kHz,Status,Vibration resistant,Weight (g)
+2.5,560,0.237,0.005,8,8,-55,105,0.1,2000,500,3200,RE50E561MDN1,Uni-Polar,Radial Lead,Ultra-Lo-ESR and Lo-Profile (φ8),6300,MP,Normal,0.71
+2.5,820,0.162,0.005,8,8,-55,105,0.1,2000,512,3200,RE50E821MDN1,Uni-Polar,Radial Lead,Ultra-Lo-ESR and Lo-Profile (φ8),6300,MP,Normal,0.71
+4,560,0.237,0.005,8,8,-55,105,0.1,2000,560,3200,RE50G561MDN1,Uni-Polar,Radial Lead,Ultra-Lo-ESR and Lo-Profile (φ8),6300,MP,Normal,0.71

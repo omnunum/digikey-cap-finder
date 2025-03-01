@@ -1,4 +1,4 @@
-Voltage,Capacitance,ESR 20°C@120Hz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current,Status,Vibration resistant,Weight (g)
+Voltage,Capacitance,ESR 20°C@120Hz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current 105°C@100kHz,Status,Vibration resistant,Weight (g)
 10,100,5.968,5,11,-40,105,0.45,10000,10,6000,ULD1A101MDD,Uni-Polar,Radial Lead,Minitualized Long Life,130,EOL,Normal,0.44
 10,220,2.713,6.3,11,-40,105,0.45,10000,22,4000,ULD1A221MED,Uni-Polar,Radial Lead,Minitualized Long Life,210,EOL,Normal,0.59
 10,330,1.809,8,11.5,-40,105,0.45,10000,33,3000,ULD1A331MPD,Uni-Polar,Radial Lead,Minitualized Long Life,330,MP,Normal,1.19

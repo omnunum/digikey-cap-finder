@@ -1,4 +1,4 @@
-Voltage,Capacitance,ESR 20°C@120Hz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current,Status,Vibration resistant,Weight (g)
+Voltage,Capacitance,ESR 20°C@120Hz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current 105°C@100kHz,Status,Vibration resistant,Weight (g)
 160,10,26.526,10,16,-40,105,0.2,8000,164,1800,UCS2C100MPD,Uni-Polar,Radial Lead,Minitualized Hi-Ripple Cur. Hi-Reliability,320,MP,Normal,1.77
 160,22,12.057,10,20,-40,105,0.2,8000,241,1400,UCS2C220MPD,Uni-Polar,Radial Lead,Minitualized Hi-Ripple Cur. Hi-Reliability,500,MP,Normal,2.34
 160,33,8.038,10,20,-40,105,0.2,8000,311,1400,UCS2C330MPD,Uni-Polar,Radial Lead,Minitualized Hi-Ripple Cur. Hi-Reliability,650,MP,Normal,2.34

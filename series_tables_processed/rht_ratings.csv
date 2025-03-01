@@ -1,13 +1,13 @@
-Voltage,Capacitance,ESR 20°C@120Hz,ESR 20°C@100kHz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current,Ripple Current_1,Status,Vibration resistant,Weight (g)
-6.3,680,0.234,12,10,12.5,-55,125,0.12,1000,856,1600,RHT0J681MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),1740,5450,MP,Normal,1.35
-6.3,820,0.194,12,10,12.5,-55,125,0.12,1000,1033,1600,RHT0J821MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),1740,5450,MP,Normal,1.35
-6.3,1000,0.159,10,8,11.5,-55,125,0.12,1000,1260,2000,RHT0J102MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),1600,5200,MP,Normal,0.93
-10,220,0.723,17,8,11.5,-55,125,0.12,1000,440,2000,RHT1A221MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),1260,3950,MP,Normal,0.93
-10,330,0.482,17,8,11.5,-55,125,0.12,1000,660,2000,RHT1A331MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),1260,3950,MP,Normal,0.93
-10,390,0.408,16,8,11.5,-55,125,0.12,1000,780,2000,RHT1A391MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),1260,3950,MP,Normal,0.93
-10,560,0.284,13,10,12.5,-55,125,0.12,1000,1120,1600,RHT1A561MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),1680,5250,MP,Normal,1.35
-16,270,0.589,16,10,12.5,-55,125,0.12,1000,864,1600,RHT1C271MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),1520,4750,MP,Normal,1.35
-16,330,0.482,16,10,12.5,-55,125,0.12,1000,1056,1600,RHT1C331MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),1520,4750,MP,Normal,1.35
-16,470,0.339,16,10,12.5,-55,125,0.12,1000,1504,1600,RHT1C471MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),1520,4750,MP,Normal,1.35
-20,150,1.061,20,10,12.5,-55,125,0.12,1000,600,1600,RHT1D151MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),1390,4350,MP,Normal,1.35
-35,100,1.592,25,10,12.5,-55,125,0.12,1000,700,1600,RHT1V101MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),1040,3250,MP,Normal,1.35
+Voltage,Capacitance,ESR 20°C@120Hz,ESR 20°C@100kHz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current 105°C@100kHz,Ripple Current 125°C@100kHz,Status,Vibration resistant,Weight (g)
+6.3,680,0.234,0.012,10,12.5,-55,125,0.12,1000,856,1600,RHT0J681MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),5450,1740,MP,Normal,1.35
+6.3,820,0.194,0.012,10,12.5,-55,125,0.12,1000,1033,1600,RHT0J821MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),5450,1740,MP,Normal,1.35
+6.3,1000,0.159,0.01,8,11.5,-55,125,0.12,1000,1260,2000,RHT0J102MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),5200,1600,MP,Normal,0.93
+10,220,0.723,0.017,8,11.5,-55,125,0.12,1000,440,2000,RHT1A221MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),3950,1260,MP,Normal,0.93
+10,330,0.482,0.017,8,11.5,-55,125,0.12,1000,660,2000,RHT1A331MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),3950,1260,MP,Normal,0.93
+10,390,0.408,0.016,8,11.5,-55,125,0.12,1000,780,2000,RHT1A391MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),3950,1260,MP,Normal,0.93
+10,560,0.284,0.013,10,12.5,-55,125,0.12,1000,1120,1600,RHT1A561MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),5250,1680,MP,Normal,1.35
+16,270,0.589,0.016,10,12.5,-55,125,0.12,1000,864,1600,RHT1C271MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),4750,1520,MP,Normal,1.35
+16,330,0.482,0.016,10,12.5,-55,125,0.12,1000,1056,1600,RHT1C331MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),4750,1520,MP,Normal,1.35
+16,470,0.339,0.016,10,12.5,-55,125,0.12,1000,1504,1600,RHT1C471MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),4750,1520,MP,Normal,1.35
+20,150,1.061,0.02,10,12.5,-55,125,0.12,1000,600,1600,RHT1D151MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),4350,1390,MP,Normal,1.35
+35,100,1.592,0.025,10,12.5,-55,125,0.12,1000,700,1600,RHT1V101MDN1,Uni-Polar,Radial Lead,Hi-Temp.(125degC),3250,1040,MP,Normal,1.35

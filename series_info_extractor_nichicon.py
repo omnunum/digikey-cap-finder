@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import requests
+import re
 from bs4 import BeautifulSoup
 from helpers import make_cached_request
 
@@ -104,25 +105,74 @@ def process_nichicon_series(df: pd.DataFrame, output_dir: str = 'series_tables/n
     
     # Process each series
     for series in series_list:
-        
         # Filter data for this series
         series_df = df[df['Series'] == series].copy()
-        
         # Clean values of common issues
-        for col in series_df.columns:
-            series_df[col] = series_df[col].astype(str).str.replace(r'\s+', ' ', regex=True)
-            series_df[col] = series_df[col].astype(str).str.replace(r' \(.+\)', '', regex=True)
-            series_df[col] = series_df[col].astype(str).str.replace(',', '')
-
-        # Save to CSV
-        output_file = os.path.join(output_dir, f"{series}_Standard Ratings.csv")
+        # Define columns that need mΩ to Ω conversion
+        milliohm_columns = [
+            'Impedance (mΩ)(-10℃/100kHz)', 
+            'Impedance (mΩ)(20℃/100kHz)',
+            'ESR(mΩ)（20℃/100kHz）',
+            'ESR(mΩ) (-40℃/100kHz）',
+            'ESR(mΩ) after endurance test'
+        ]
+        
+        ripple_columns = [
+            'Rated Ripple1(mArms)',
+            'Rated Ripple2(mArms)'
+        ]
+        
         cols_to_drop = [
             'Purchase', 'All', 'Series', 'Low temperature ESR standard',
             'AEC-Q200 compliant', 'Audio equipment', 'Capacitance Tolerance (%)'
         ]
-        for col in cols_to_drop:
-            if col in series_df.columns:
+        
+        # First, handle ripple columns to extract rating information
+        for col in ripple_columns:
+            if col in series_df.columns and not series_df.empty:
+                # Get first non-empty value to extract rating
+                sample_values = series_df[col].dropna()
+                rating = ""
+                new_col_name = col
+                
+                if not sample_values.empty:
+                    sample_value = sample_values.iloc[0]
+                    # Extract rating in parentheses using regex
+                    rating_match = re.search(r'\((.*?)\)', sample_value)
+                    rating = rating_match.group(1) if rating_match else ""
+                    
+                    if rating:
+                        # Rename the column to include the rating
+                        new_col_name = f"Ripple Rating ({rating})"
+                        series_df.rename(columns={col: new_col_name}, inplace=True)
+                        
+                        # Update the column reference for further processing
+                        ripple_columns[ripple_columns.index(col)] = new_col_name
+                
+                # Clean the values - remove the rating part
+                series_df[new_col_name] = series_df[new_col_name].astype(str).apply(
+                    lambda x: re.sub(r'\s*\(.*?\)', '', x) if isinstance(x, str) and '(' in x else x
+                )
+
+        for col in series_df.columns:
+            # Apply basic cleaning to all columns
+            series_df[col] = series_df[col].astype(str).str.replace(r'\s+', ' ', regex=True)
+            series_df[col] = series_df[col].astype(str).str.replace(',', '')
+            
+            # Apply specialized conversion for milliohm columns
+            if col in milliohm_columns:
+                series_df[col] = pd.to_numeric(series_df[col], errors='coerce') / 1000
+                new_col_name = col.replace('(mΩ)', '(Ω)')
+                series_df.rename(columns={col: new_col_name}, inplace=True)
+            
+            # Convert ripple values to numeric after cleaning
+            if col in ripple_columns:
+                series_df[col] = pd.to_numeric(series_df[col], errors='coerce')
+            
+            if col in cols_to_drop:
                 series_df = series_df.drop(col, axis=1)
+        # Save to CSV
+        output_file = os.path.join(output_dir, f"{series}_Standard Ratings.csv")
         series_df.to_csv(output_file, index=False)
 
 def main():

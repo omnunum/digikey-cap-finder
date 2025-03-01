@@ -1,4 +1,4 @@
-Voltage,Capacitance,ESR 20°C@120Hz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current,Status,Vibration resistant,Weight (g)
+Voltage,Capacitance,ESR 20°C@120Hz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current 150°C@100kHz,Status,Vibration resistant,Weight (g)
 10,330,0.804,10,16,-55,150,0.2,1000,99,1800,UBX1A331MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,300,EOL,Normal,1.77
 10,470,0.564,10,20,-55,150,0.2,1000,141,1400,UBX1A471MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,400,EOL,Normal,2.34
 10,1000,0.265,12.5,25,-55,150,0.2,1000,300,800,UBX1A102MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,600,LTB,Normal,4.56

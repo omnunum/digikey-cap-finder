@@ -370,6 +370,10 @@ Please extract the following tables:
         - ESR {temp} {frequency} 
         - Impedance {temp} {frequency}
 Tables will not always have these columns, but if they are present, please extract them.
+For all formats:
+    - Around the Standard Ratings table, there are notes about the temp and frequency of some of the ratings.  
+        - Please take those notes and integrate them into the relevant column names.
+    - Additionally, rating context can be found in the SPECIFICATIONS table (like with the tan value temp and frequency)
 """
         },
     }
