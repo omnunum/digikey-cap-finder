@@ -225,6 +225,40 @@ Notes about "STANDARD RATINGS" table:
     - For some of the ratings, there are notes about the temp and frequency earlier in the document.  Please take those notes and integrate them into the relevant column names.
         - For instance, the temp and frequency of the tan value is noted earlier in the document in the dissipation factor table.
 """
+        }, 
+        "samsung": {
+            "model": ModelType.SONNET,
+            "prompt": """
+Samsung uses a format for their standard ratings table that is different from the other manufacturers, where the data is broken
+up into multiple tables.  Please extract all of the tables and combine them into a single table as per the specs below.
+Please extract the only the following tables:
+- Optional: "Dissipation Factor (tan δ)" (on the first page if it exists)
+    - Required columns (always present):
+        - tanδ {temp} {frequency}
+        - Rated Voltage (Vdc) 
+- Required: "STANDARD RATINGS" (on subsequent pages), possible columns include (in no particular order and not exhaustive)
+    - Rated Voltage (Vdc) 
+        - Taken from the WV column from both input tables
+        - Its the header at the top of the tables going horizontally across the top
+        - Ignore the code after the voltage value
+    - Rated Capacitance (µF) 
+        - Taken from leftmost column from both input tables
+        - Its the first column to the left of the "Case size" table, treat this like another header column but vertical
+        - Ignore the code after the capacitance value
+    - Case size φD×L(mm) 
+        - The values in the cells of the Case size table
+    - Rated ripple current (mArms/ {temp}, {frequency}) 
+        - Taken from the values in the "Maximum permissible ripple current" table
+        - Match to case size data using the voltage and capacitance values
+Notes about "STANDARD RATINGS" table:
+    - We want the input tables joined together to form a single table, so make sure to join the values in the tables by voltage value (not code) and capacitance value (not code)
+    - Most rows will have all of the columns filled, but some rows may be missing values.
+    - For some of the ratings, there are notes about the temp and frequency earlier in the document.  Please take those notes and integrate them into the relevant column names.
+        - For instance, the temp and frequency of the tan value is noted earlier in the document in the dissipation factor table.
+    - Pay close attention to which rating values belong to which voltage and capacitance values.
+        - Some ratings will not exist at a given voltage and capacitance, and that is okay, ignore them.
+        - Take extra time to get the first value of each voltage correct so that it has the correct capacitance.
+"""
         },
         "kemet": {
             "model": ModelType.SONNET,
@@ -288,7 +322,7 @@ For all formats:
     - Below the Standard Ratings table, there are notes about the temp and frequency of some of the ratings.  
         - Please take those notes and integrate them into the relevant column names.
     - Additionally, rating context can be found in tables that come before the Standard Ratings table (like with the tan value temp and frequency)
-"""},
+    """},
         "panasonic": {
             "model": ModelType.SONNET,
             "prompt": """

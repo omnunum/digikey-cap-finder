@@ -1,0 +1,12 @@
+Item,Performance Characteristics
+Operating,"－40 ~ ＋85℃(6.3 ~ 400V), －25 ~ ＋85℃(450V)"
+Voltage,6.3 ~ 450V
+Capacitance Range,1.0 ~ 22000㎌
+Capacitance Tolerance,±20% at 120Hz 20℃
+Leakage Current,"6.3 ~ 100V: I = 0.01CV or 3㎂ whichever is greater (After 2minute), 160 ~ 450V: I = 0.03CV＋15㎂(CV≤1000) I = 0.02CV＋25㎂(CV>1000) (After 5minute)"
+tan δ,"Rated voltage(V): 6.3, tan δ(MAX.): 0.28; Rated voltage(V): 10, tan δ(MAX.): 0.24; Rated voltage(V): 16, tan δ(MAX.): 0.20; Rated voltage(V): 25, tan δ(MAX.): 0.16; Rated voltage(V): 35, tan δ(MAX.): 0.14; Rated voltage(V): 50, tan δ(MAX.): 0.12; Rated voltage(V): 63, tan δ(MAX.): 0.10; Rated voltage(V): 100, tan δ(MAX.): 0.08; Rated voltage(V): 160~250, tan δ(MAX.): 0.15; Rated voltage(V): 350~450, tan δ(MAX.): 0.20; Add 0.02 per 1000㎌ for more than 1000㎌ items"
+Stability at Low Temperature,"Rated voltage(V): 6.3, Z(－25℃)/Z(＋20℃): 5, Z(－40℃)/Z(＋20℃): 12; Rated voltage(V): 10, Z(－25℃)/Z(＋20℃): 4, Z(－40℃)/Z(＋20℃): 10; Rated voltage(V): 16, Z(－25℃)/Z(＋20℃): 3, Z(－40℃)/Z(＋20℃): 8; Rated voltage(V): 25, Z(－25℃)/Z(＋20℃): 2, Z(－40℃)/Z(＋20℃): 5; Rated voltage(V): 35, Z(－25℃)/Z(＋20℃): 2, Z(－40℃)/Z(＋20℃): 4; Rated voltage(V): 50~100, Z(－25℃)/Z(＋20℃): 2, Z(－40℃)/Z(＋20℃): 3; Rated voltage(V): 160~400, Z(－25℃)/Z(＋20℃): 3, Z(－40℃)/Z(＋20℃): 6; Rated voltage(V): 450, Z(－25℃)/Z(＋20℃): 6, Z(－40℃)/Z(＋20℃): -"
+Load Life,After 2000hours application of DC rated working voltage at 85℃ the measurement shall meet following limits. Measurements shall be performed after 2hours exposure at room temperature. Leakage current: Initial specified value or less; Capacitance change: Within ±20% of the initial measured value; tan δ: Within 200% of the initial specified value
+Shelf Life,After 1000hours at 85℃ without voltage application measurements shall meet the following limits. Measurement shall be performed after exposure for 24hours at room temperature after application of DC rated voltage to the capacitors for 30minutes. Leakage current: Initial specified value or less; Capacitance change: Within ±20% of the initial measured value; tan δ: Within 200% of the initial specified value
+Marking,Printed with white color letter on blue sleeve
+Applicable Standards,"JIS C－5141, JIS C－5102"
