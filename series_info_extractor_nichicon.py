@@ -142,8 +142,8 @@ def process_nichicon_series(df: pd.DataFrame, output_dir: str = 'series_tables/n
                     rating = rating_match.group(1) if rating_match else ""
                     
                     if rating:
-                        # Rename the column to include the rating
-                        new_col_name = f"Ripple Rating ({rating})"
+                        # Rename the column to include the rating but preserve the column number
+                        new_col_name = f"{col.split('(')[0]}({rating})"
                         series_df.rename(columns={col: new_col_name}, inplace=True)
                         
                         # Update the column reference for further processing

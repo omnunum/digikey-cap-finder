@@ -4,7 +4,7 @@ import re
 import unicodedata
 
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
@@ -31,91 +31,11 @@ class Catalog:
     name: str
     url: str
     new_page_triggers: list[str]
+    specific_patterns: Optional[list[str]] = None
     starting_page: Optional[int] = None
     ending_page: Optional[int] = None
     pdf_data: Optional[io.BytesIO] = None
 
-def fetch_nichicon_data():
-    url = "https://www.nichicon.co.jp/english/products/aec/"
-    
-    params = {
-        'per_page': '10000'
-    }
-    
-    payload = {
-        'series': '',
-        'part_number': '',
-        'type[]': 'TP04',
-        'hidden-s-endurance': 'false',
-        's-endurance_lower': '0',
-        's-endurance_upper': '20000',
-        'hidden-s-rated_voltage': 'false',
-        's-rated_voltage_lower': '2.5',
-        's-rated_voltage_upper': '630',
-        'hidden-s-rated_capacitance_micro': 'false',
-        's-rated_capacitance_micro_lower': '0.1',
-        's-rated_capacitance_micro_upper': '680000',
-        'hidden-s-product_diameter': 'false',
-        's-product_diameter_lower': '4',
-        's-product_diameter_upper': '100',
-        'hidden-s-product_height': 'false',
-        's-product_height_lower': '3.9',
-        's-product_height_upper': '250',
-        'hidden-s-rated_ripple_120hz': 'false',
-        's-rated_ripple_120hz_lower': '1',
-        's-rated_ripple_120hz_upper': '48200',
-        'hidden-s-rated_ripple_100khz': 'false',
-        's-rated_ripple_100khz_lower': '6',
-        's-rated_ripple_100khz_upper': '8100',
-        'hidden-s-high_temperature_impedance': 'false',
-        's-high_temperature_impedance_lower': '10',
-        's-high_temperature_impedance_upper': '11000',
-        'hidden-s-high_temperature_esr': 'false',
-        's-high_temperature_esr_lower': '5',
-        's-high_temperature_esr_upper': '2800',
-        'search_product': '',
-        'search-product': 'true'
-    }
-    
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Mozilla/5.0'
-    }
-    
-    response_text = make_cached_request(
-        url=url,
-        payload=payload,
-        headers=headers,
-        cache_dir='cache',
-        response_type='html',
-        params=params
-    )
-    
-    # Parse HTML
-    soup = BeautifulSoup(response_text, 'html.parser')
-    table = soup.find('table', {'id': 'searchProductsResultTable'})
-    
-    if table is None:
-        print("Table not found in response")
-        return None
-        
-    # Extract headers
-    headers = []
-    for th in table.find_all('th'):
-        headers.append(th.text.strip())
-        
-    # Extract rows
-    rows = []
-    for tr in table.find_all('tr')[1:]:  # Skip header row
-        row = []
-        for td in tr.find_all('td'):
-            row.append(td.text.strip())
-        if row:  # Only add non-empty rows
-            rows.append(row)
-            
-    # Create DataFrame
-    df = pd.DataFrame(rows, columns=headers)
-    return df
 
 def normalize_text(text):
     """
@@ -127,7 +47,7 @@ def normalize_text(text):
     normalized = ' '.join(normalized.split())
     return normalized
 
-def extract_series_names(new_page_triggers, text):
+def extract_series_names(new_page_triggers: list[str], text: str, specific_patterns: Optional[list[str]] = None) -> Optional[str]:
     """
     Extract series names from text using trigger strings and regex patterns.
     Returns the series name that appears earliest in the text.
@@ -136,14 +56,17 @@ def extract_series_names(new_page_triggers, text):
     Parameters:
     new_page_triggers (list[str]): List of strings that indicate where to look for series names
     text (str): Text to search for series names
+    specific_patterns (Optional[list[str]]): Additional catalog-specific regex patterns
     
     Returns:
-    str: Extracted series name or None if not found
+    Optional[str]: Extracted series name or None if not found
     """
-    patterns = [
+    # Standard patterns for finding series names
+    standard_patterns = [
         r"([A-Z\-]{2,}[0-9]*[\s\n]+\(Bi-?polar\))\s+[sS]eries",
         r"([A-Z\-]{2,}[0-9]*)[\s\n]+[sS]eries",
         r"[sS]eries[\s\n]+([A-Z\-]{2,}[0-9]*)",
+        *(specific_patterns or [])
     ]
 
     trigger_index = -1
@@ -156,9 +79,12 @@ def extract_series_names(new_page_triggers, text):
         
     # Find all matches for all patterns
     matches = []
-    for pattern in patterns:
+    for pattern in standard_patterns:
         for match in re.finditer(pattern, text):
-            matches.append((match.start(), match.group(1)))
+            # Ensure we have a capture group
+            if match.lastindex and match.lastindex >= 1:
+                series_name = match.group(1).replace(" ", "")
+                matches.append((match.start(), series_name))
     
     # Return the earliest match if any found
     if matches:
@@ -197,8 +123,9 @@ def find_series_in_catalog(catalog: Catalog):
         
         # Start from specified page where series for our type of data begins
         for page_num in range(start_page, end_page):
+
             page = pdf.pages[page_num]
-            text = page.extract_text()
+            text = page.dedupe_chars().extract_text()
 
             if not text:
                 # If we can't extract text via pdfplumber, use Tesseract OCR
@@ -210,9 +137,8 @@ def find_series_in_catalog(catalog: Catalog):
 
             normalized_text = normalize_text(text)
             normalized_trigger_text = [normalize_text(t) for t in catalog.new_page_triggers]
-            
             # Try to extract series name from the page
-            name = extract_series_names(normalized_trigger_text, normalized_text)
+            name = extract_series_names(normalized_trigger_text, normalized_text, catalog.specific_patterns)
             
             
             # If we found a new series, start collecting its pages
@@ -247,12 +173,22 @@ def main():
     os.makedirs('series_pdfs', exist_ok=True)
     catalogs = [
         Catalog(
-            name="Chemi-Con",
-            url="https://www.chemi-con.co.jp/products/relatedfiles/capacitor/catalog/al-all-e.pdf",
-            new_page_triggers=["MINIATURE ALUMINUM ELECTROLYTIC CAPACITORS"],
-            starting_page=150,
-            ending_page=239
+            name="Nichicon",
+            url="https://www.nichicon.co.jp/english/_assets/images/products/catalog/corporate/digital/e-lead.pdf",
+            new_page_triggers=["ALUMINUM ELECTROLYTIC CAPACITORS"],
+            specific_patterns=[
+                # Nichicon-specific pattern for series like "UBX" at the end of a numbered list
+                r"1 2 3 4 5 6 7 8 9 10 11 (([A-Z\-]\s?){3})\s+",
+                r"ALUMINUM ELECTROLYTIC CAPACITORS (([A-Z\-]\s?){3})\s+"
+            ]
         ),
+        # Catalog(
+        #     name="Chemi-Con",
+        #     url="https://www.chemi-con.co.jp/products/relatedfiles/capacitor/catalog/al-all-e.pdf",
+        #     new_page_triggers=["MINIATURE ALUMINUM ELECTROLYTIC CAPACITORS"],
+        #     starting_page=150,
+        #     ending_page=239
+        # ),
         # Catalog(
         #     name="Panasonic",
         #     url="https://industrial.panasonic.com/cdbs/www-data/pdf/RDF0000/ast-ind-152839.pdf",

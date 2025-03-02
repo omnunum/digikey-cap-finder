@@ -113,15 +113,6 @@ class ClaudeExtractor:
                     f"Input size: {response.usage.input_tokens} tokens\n",
                     f"Response size: {response.usage.output_tokens} tokens\n"
                 )
-
-                # Alert if response is smaller than expected
-                if response.usage.output_tokens < 4000:  # You can adjust this threshold
-                    print(f"Warning: Response is using less than half of available capacity")
-                    
-                    # Optional: Log details about small responses for analysis
-                    print("Response preview:")
-                    print(response_text[:200] + "...")
-                
                 if "<end_of_document>" in response_text:
                     end_of_document = True
                     response_text = response_text.replace("<end_of_document>", "").strip()
@@ -208,6 +199,28 @@ Additional Instructions:
     - Process tables sequentially but maximize data extraction in each response
 """
     configuration = {
+        "nichicon": {
+            "model": ModelType.SONNET,
+            "prompt": """
+Please extract the following tables:
+- Required: "Frequency coefficient of rated ripple current" 
+    - Frequency
+    - Capacitance (µF) 
+    - Coefficient
+    - Voltage (V)
+Notes about the table:
+    - If the table looks like a graph/chart instead of a table, ignore it for now and do not include it in the output
+    - The capacitance value looks like the left-most "column" of the table but is acually a vertical header
+    - The Frequency is the headers above each column
+        - Remove the "or more" from the frequency values
+        - Keep the units of the frequency values (Hz/kHz)
+    - Capacitance is almost always in the table but is occasionally missing
+        - Keep the "{value} to {value}" format for the capacitance values if it is present
+        - If it is missing, do not include it in the output
+    - If voltage is present and exits across multiple rows, broadcast the values to all relevantrows
+        - Keep the "{value} to {value}" format for the voltage values if it is present
+"""
+        },
         "chemi-con": {
             "model": ModelType.SONNET,
             "prompt": """
