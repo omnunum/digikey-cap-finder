@@ -5,18 +5,13 @@ import os
 import io
 import base64
 import re
-from typing import List, Dict, Union, TypedDict
+from typing import List, Dict, Union
 import pandas as pd
 import pdfplumber
 from pathlib import Path
-from enum import Enum
-from anthropic import Anthropic
-from anthropic.types import MessageParam, TextBlockParam, DocumentBlockParam, Base64PDFSourceParam, CacheControlEphemeralParam
+from anthropic.types import TextBlockParam, DocumentBlockParam, Base64PDFSourceParam, CacheControlEphemeralParam
 
-
-class ModelType(Enum):
-    HAIKU = "claude-3-5-haiku-20241022"
-    SONNET = "claude-3-7-sonnet-20250219"
+from anthropic_api import AnthropicAPI, ModelType
 
 
 def load_pdf_text(pdf_path: Path) -> str:
@@ -54,101 +49,99 @@ def parse_xml_tables(text: str) -> Dict[str, pd.DataFrame]:
     
     return tables
     
-class ClaudeExtractor:
-    def __init__(self, api_key: str, model: ModelType):
-        """Initialize the extractor with Claude API key."""
-        self.client = Anthropic(api_key=api_key)
-        self.model = model
+class TableExtractor:
+    def __init__(self, api: AnthropicAPI):
+        """Initialize the extractor with an AnthropicAPI instance."""
+        self.api = api
 
-    def extract_tables(self, pdf_block_param: Union[TextBlockParam, DocumentBlockParam], system_prompt: str, initial_message: str) -> Dict[str, pd.DataFrame]:
-        """Extract tables from PDF using Claude, with precise token counting."""
-        messages: List[MessageParam] = []
-        complete_response_text = []
-        end_of_document = False
+    def extract_tables(
+        self, 
+        pdf_path: Path,
+        system_prompt: str, 
+        initial_message: str,
+        model: ModelType,
+        max_tokens: int = 8192
+    ) -> Dict[str, pd.DataFrame]:
+        """
+        Extract tables from PDF using Claude with document extraction logic.
         
-        input_message = MessageParam(
-            role="user",
-            content=[
-                pdf_block_param, 
-                TextBlockParam(
-                    type="text",
-                    text=initial_message
+        Uses the message_iterator from AnthropicAPI to handle the conversation flow.
+        The iterator yields responses, and this method decides whether to continue
+        based on whether "<end_of_document>" marker is detected.
+        
+        Args:
+            pdf_path: Path to the PDF file
+            system_prompt: System prompt to guide Claude's behavior
+            initial_message: Initial message requesting table extraction
+            model: The Claude model to use for this conversation
+            max_tokens: Maximum tokens for Claude response
+        """
+        # Prepare PDF content based on model
+        pdf_block: DocumentBlockParam | TextBlockParam
+        if model == ModelType.SONNET:
+            pdf_block =  DocumentBlockParam(
+                type="document",
+                source=Base64PDFSourceParam(
+                    type="base64",
+                    media_type="application/pdf",
+                    data=load_pdf_data(pdf_path)
+                ),
+                cache_control=CacheControlEphemeralParam(
+                    type="ephemeral"
                 )
-            ]
+            )
+        else:
+            pdf_block = TextBlockParam(
+                type="text",
+                text=load_pdf_text(pdf_path),
+                cache_control=CacheControlEphemeralParam(
+                    type="ephemeral"
+                )
+            )
+        
+        initial_content = [
+            pdf_block, 
+            TextBlockParam(
+                type="text",
+                text=initial_message
+            )
+        ]
+        
+        # Create message iterator and collect responses
+        complete_response_text = []
+        message_gen = self.api.message_iterator(
+            system_prompt=system_prompt,
+            initial_content=initial_content,
+            model=model,
+            max_tokens=max_tokens
         )
-        messages.append(input_message)
-
-        while not end_of_document:
-            try:
-                response = self.client.messages.create(
-                    model=self.model.value,
-                    max_tokens=8192,
-                    temperature=0,
-                    system=[
-                        TextBlockParam(
-                            type="text",
-                            text=system_prompt
-                        )
-                    ],
-                    messages=messages
-                )
-                
-                # Get response text
-                response_text = ""
-                for block in response.content:
-                    if block.type == "text":
-                        response_text = block.text
-                        break
-                
-                # Add to conversation history and count cumulative tokens
-                messages.append(MessageParam(
-                    role="assistant",
-                    content=[TextBlockParam(
-                        type="text",
-                        text=response_text
-                    )]
-                ))
-
-                print(
-                    f"Input size: {response.usage.input_tokens} tokens\n",
-                    f"Response size: {response.usage.output_tokens} tokens\n"
-                )
-                if "<end_of_document>" in response_text:
-                    end_of_document = True
-                    response_text = response_text.replace("<end_of_document>", "").strip()
-                
+        
+        # Get first response and iterate through responses
+        response_text = next(message_gen)
+        
+        # Continue until end of document or error
+        while True:
+            # Check for end of document marker
+            if "<end_of_document>" in response_text:
+                # End of document reached, clean response and finish
+                response_text = response_text.replace("<end_of_document>", "").strip()
                 complete_response_text.append(response_text)
-                if end_of_document:
-                    continue
-
-                messages.append(MessageParam(
-                    role="user",
-                    content=[
-                        TextBlockParam(
-                            type="text",
-                            text="<continue>"
-                        )
-                    ]
-                ))
-                
-            except Exception as e:
-                print(f"Error in API call: {e}")
                 break
-
+            
+            # Save this response
+            complete_response_text.append(response_text)
+            
+            # Request next chunk with "continue" message
+            response_text = message_gen.send("<continue>")
+        
+        # Parse collected responses
         full_text = "\n".join(complete_response_text)
         tables = parse_xml_tables(full_text)
+        
+        if not tables:
+            print("No tables found in extracted content")
+            
         return tables
-
-    def save_results(self, data: Dict[str, pd.DataFrame], output_path: Path) -> None:
-        """Save extracted data to JSON and CSV files."""
-        for name, table in data.items():
-            # Convert to DataFrame and save CSV
-            try:
-                df = pd.DataFrame(table)
-                csv_path = output_path.with_name(f"{output_path.stem}_{name}.csv")
-                df.to_csv(csv_path, index=False)
-            except Exception as e:
-                print(f"Error converting {name} to CSV: {e}")
 
 def main():
     # Get API key from environment
@@ -390,54 +383,39 @@ For all formats:
 """
         },
     }
-    for manufacturor, config in configuration.items():
-        # Initialize extractor
-        extractor = ClaudeExtractor(api_key, model=config["model"])
+    
+    for manufacturer, config in configuration.items():
+        # Initialize API client
+        api_client = AnthropicAPI(api_key)
+        extractor = TableExtractor(api_client)
+        
         # Process each PDF in series_pdfs directory
-        pdf_dir = Path(f"series_pdfs/{manufacturor}")
+        pdf_dir = Path(f"series_pdfs/{manufacturer}")
         for pdf_path in pdf_dir.glob("*.pdf"):
             try:
                 # Check if tables already exist for this series
-                output_dir = base_output_dir / manufacturor
+                output_dir = base_output_dir / manufacturer
                 output_path = output_dir / pdf_path.stem
                 if output_dir.exists() and any(output_dir.glob(f"{pdf_path.stem}*.csv")):
                     print(f"\nSkipping {pdf_path.name} - tables already exist in {output_dir}")
                     continue
 
                 print(f"\nProcessing {pdf_path.name}")
-                
-                # Count input tokens for monitoring total costs
-                if config["model"] == ModelType.SONNET:
-                    pdf_block = DocumentBlockParam(
-                            type="document",
-                            source=Base64PDFSourceParam(
-                                type="base64",
-                                media_type="application/pdf",
-                                data=load_pdf_data(pdf_path)
-                            ),
-                            cache_control=CacheControlEphemeralParam(
-                                type="ephemeral"
-                            )
-                        )
-                else:
-                    pdf_block = TextBlockParam(
-                        type="text",
-                        text=load_pdf_text(pdf_path),
-                        cache_control=CacheControlEphemeralParam(
-                            type="ephemeral"
-                        )
-                    )
-                # Load PDF as base64
                 print(f"Loaded PDF: {pdf_path.name}")
 
-                # Extract tables
-                data = extractor.extract_tables(pdf_block, system_prompt, config["prompt"])
+                # Extract tables - now passing the model as well
+                data = extractor.extract_tables(
+                    pdf_path, 
+                    system_prompt, 
+                    config["prompt"],
+                    config["model"]
+                )
                 print(f"Extracted {len(data)} table entries")
 
                 # Save results
                 output_dir.mkdir(exist_ok=True)
                 output_path = output_dir / pdf_path.stem
-                extractor.save_results(data, output_path)
+                api_client.save_dataframes(data, output_path)
                 print(f"Results saved to {output_path}")
 
             except Exception as e:
