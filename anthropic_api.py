@@ -1,12 +1,17 @@
 """
 Generic Anthropic API client for handling Claude API interactions.
 """
-from typing import List, Dict, Union, Optional, Generator
+from typing import List, Dict, Union, Optional, Generator, Any, TypeAlias, Sequence
 import pandas as pd
 from pathlib import Path
 from enum import Enum
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+import base64
+import pdfplumber
 from anthropic import Anthropic
-from anthropic.types import MessageParam, TextBlockParam, DocumentBlockParam
+from anthropic.types import MessageParam, TextBlockParam, DocumentBlockParam, Base64PDFSourceParam, CacheControlEphemeralParam
+from anthropic._exceptions import OverloadedError
 
 
 class ModelType(Enum):
@@ -14,15 +19,49 @@ class ModelType(Enum):
     SONNET = "claude-3-7-sonnet-20250219"
 
 
-class AnthropicAPI:
-    def __init__(self, api_key: str):
-        """Initialize the API client with Anthropic API key."""
-        self.client = Anthropic(api_key=api_key)
+BlockParams: TypeAlias = Sequence[Union[TextBlockParam, DocumentBlockParam]]
 
+
+@dataclass
+class Thread(ABC):
+    """Base class for managing a conversation thread with Claude."""
+    api_key: str
+    model: ModelType
+    user_prompt: str
+    name: str
+    max_tokens: int
+    
+    def __post_init__(self):
+        """Initialize the Anthropic client."""
+        self.client = Anthropic(api_key=self.api_key)
+    
+    @staticmethod
+    def load_pdf_text(pdf_path: Path) -> str:
+        """Extract text content from PDF using pdfplumber."""
+        with pdfplumber.open(pdf_path) as pdf:
+            text = ""
+            for page in pdf.pages:
+                text += page.extract_text() + "\n"
+            return text
+
+    @staticmethod
+    def load_pdf_data(pdf_path: Path) -> str:
+        """Load PDF and encode as base64."""
+        with pdf_path.open("rb") as pdf_file:
+            binary_data = pdf_file.read()
+            base64_encoded_data = base64.b64encode(binary_data)
+            return base64_encoded_data.decode("utf-8")
+    
+    @property
+    @abstractmethod
+    def system_prompt(self) -> str:
+        """System prompt to guide Claude's behavior. To be implemented by subclasses."""
+        pass
+    
     def message_iterator(
         self, 
         system_prompt: str, 
-        initial_content: List[Union[TextBlockParam, DocumentBlockParam]],
+        initial_content: BlockParams,
         model: ModelType,
         max_tokens: int = 8192
     ) -> Generator[str, Optional[str], None]:
@@ -64,21 +103,31 @@ class AnthropicAPI:
             )
         ]
         
+        retry_count, max_retries = 0, 3
         # Main conversation loop
         while True:
             # Call the API - exceptions will propagate to caller
-            response = self.client.messages.create(
-                model=model.value,
-                max_tokens=max_tokens,
-                temperature=0,
-                system=[
-                    TextBlockParam(
-                        type="text",
-                        text=system_prompt
-                    )
-                ],
-                messages=messages
-            )
+            try:
+                response = self.client.messages.create(
+                    model=model.value,
+                    max_tokens=max_tokens,
+                    temperature=0,
+                    system=[
+                        TextBlockParam(
+                            type="text",
+                            text=system_prompt
+                        )
+                    ],
+                    messages=messages
+                )
+            except OverloadedError:
+                retry_count += 1
+                if retry_count < max_retries:
+                    print(f"\nRate limit hit (OverloadedError), waiting 15 seconds before retry {retry_count}/{max_retries}")
+                    import time
+                    time.sleep(15)
+                    continue
+                raise  # Re-raise if we've hit max retries
             
             print(
                 f"Input size: {response.usage.input_tokens} tokens\n",
@@ -120,12 +169,47 @@ class AnthropicAPI:
                     )
                 ]
             ))
-
-    def save_dataframes(self, data: Dict[str, pd.DataFrame], output_path: Path) -> None:
-        """Save extracted DataFrames to CSV files."""
-        for name, table in data.items():
+    
+    def iterate_thread(self, initial_content: Optional[BlockParams] = None) -> Generator[str, Optional[str], None]:
+        """
+        Process the conversation thread, yielding each response.
+        
+        Args:
+            initial_content: Optional list of content blocks. If not provided,
+                the thread will prepare its own content.
+                
+        Returns:
+            Generator yielding Claude's responses and accepting messages via send()
+        """
+        # Add the user prompt to initial content
+        content = [
+            *(initial_content or []),
+            TextBlockParam(type="text", text=self.user_prompt)
+        ]
+        
+        # Create message iterator
+        message_gen = self.message_iterator(
+            system_prompt=self.system_prompt,
+            initial_content=content,
+            model=self.model,
+            max_tokens=self.max_tokens
+        )
+        
+        # Get first response
+        response_text = next(message_gen)
+        
+        # Enter the send/yield loop
+        while True:
+            # Yield the response and get the user's next message
+            user_message = yield response_text
+            
+            # If no message was sent, we're done
+            if user_message is None:
+                break
+                
+            # Forward the user message to the API iterator
             try:
-                csv_path = output_path.with_name(f"{output_path.stem}_{name}.csv")
-                table.to_csv(csv_path, index=False)
-            except Exception as e:
-                print(f"Error saving {name} to CSV: {e}") 
+                response_text = message_gen.send(user_message)
+            except StopIteration:
+                # API iterator is done
+                break 

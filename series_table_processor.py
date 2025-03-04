@@ -380,15 +380,16 @@ def calculate_esr_from_dissipation(input_df: pd.DataFrame, frequency: float = 12
     df = input_df.copy()
     
     if 'Dissipation Factor' in df.columns and 'Capacitance' in df.columns:
-        # ESR = DF / (2π × f × C)
-        # where:
-        # - DF is Dissipation Factor (unitless)
-        # - f is frequency in Hz
-        # - C is capacitance in Farads
-        # 
-        # Since capacitance values in datasheets are typically in microfarads (μF),
-        # we need to convert to Farads by multiplying by 1e-6 (1 μF = 10^-6 F)
         def compute_esr_value(row):
+            """
+            Compute ESR from Dissipation Factor and Capacitance at a specified frequency.
+            Formula: ESR = DF / (2π × f × C)
+                - DF is Dissipation Factor (unitless)
+                - f is frequency in Hz
+                - C is capacitance in Farads
+            Since capacitance values in datasheets are typically in microfarads (μF),
+            we need to convert to Farads by multiplying by 1e-6 (1 μF = 10^-6 F)
+            """
             if pd.notnull(row['Dissipation Factor']) and pd.notnull(row['Capacitance']) and row['Capacitance'] > 0:
                 return round(row['Dissipation Factor'] / (2 * 3.14159 * frequency * row['Capacitance'] * 1e-6), 3)
             else:

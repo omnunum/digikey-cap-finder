@@ -1,0 +1,60 @@
+---
+description: For reducing the amount of comments that don't add much value.
+globs: *.py
+alwaysApply: false
+---
+# Goal
+We want to reduce the amount of low value-add code comments that just describe what is happening in the following code.  We want inline comments to be primarily for explaining
+- the purpose (the why) for the code existing when there is outside context that would be helpful
+- convoluted code that is tricky to read, like nested indexing and regexes
+
+We also want to avoid using the Args and Returns part of docstrings since we should aim to have good descriptive variable names and named type aliases for input and output varaible types.
+
+# Examples to Avoid
+```python
+# Get API key from environment
+api_key = os.getenv("ANTHROPIC_API_KEY")
+if not api_key:
+    raise ValueError("ANTHROPIC_API_KEY environment variable not set")
+```
+```python
+# Parse tables from response
+tables = parse_xml_tables(response_text)
+print(f"Extracted {len(tables)} table entries")
+```
+```python
+def parse_and_standardize_file(input_path):
+    """
+    Process a single file: read, pivot if needed, standardize headers.
+    
+    Args:
+        input_path: Path to the input CSV file
+    
+    Returns:
+        FileInfo object containing the processed DataFrame and metadata, or None if file type is unknown
+    """
+```
+
+# Examples to Align
+```python
+# Extract both diameter and length in one regex operation
+# Common formats: "5x11", "φ5×11", "5.0×11.0", "φ5.0×11.0"
+match = df[col].str.extract(r'(\d+\.?\d*)\s*[×x]\s*(\d+\.?\d*)', expand=True)
+```
+```python
+# Ensure Voltage is properly formatted for joining
+ratings_df['Voltage'] = ratings_df['Voltage'].astype(float)
+expanded_dissipation_df['Voltage'] = expanded_dissipation_df['Voltage'].astype(float)
+```
+```python
+# Convert to string, replace trailing zeros, and convert NaN to empty string
+df[col] = df[col].astype(str).replace(r'\.0$', '', regex=True).replace('nan', '')
+```
+```python
+def parse_and_standardize_csv_file(input_path: Path) -> Optional[FileInfo]:
+    """
+    Process a single file: read, pivot if needed, standardize headers, and create 
+    a FileInfo with the data collected if we have a mapping for the data type or
+    None if we don't.
+    """
+```
