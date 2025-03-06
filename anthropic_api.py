@@ -11,7 +11,7 @@ import base64
 import pdfplumber
 from anthropic import Anthropic
 from anthropic.types import MessageParam, TextBlockParam, DocumentBlockParam, Base64PDFSourceParam, CacheControlEphemeralParam
-from anthropic._exceptions import OverloadedError
+from anthropic._exceptions import OverloadedError, RateLimitError
 
 
 class ModelType(Enum):
@@ -120,10 +120,10 @@ class Thread(ABC):
                     ],
                     messages=messages
                 )
-            except OverloadedError:
+            except (OverloadedError, RateLimitError) as e:
                 retry_count += 1
                 if retry_count < max_retries:
-                    print(f"\nRate limit hit (OverloadedError), waiting 15 seconds before retry {retry_count}/{max_retries}")
+                    print(f"\nRate limit or overloaded error hit: {e.__class__.__name__}, waiting 15 seconds before retry {retry_count}/{max_retries}")
                     import time
                     time.sleep(15)
                     continue
