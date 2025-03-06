@@ -3,7 +3,7 @@ Report generation functions for series table processing.
 """
 import logging
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Callable, Optional, Set
 import pandas as pd
 from collections import defaultdict, Counter
 
@@ -46,14 +46,24 @@ def generate_header_mapping_report(file_infos: List) -> None:
         if len(original_headers) == 1 and mapped_name == list(original_headers)[0]:
             print(f"  - {mapped_name}")
 
-def generate_esr_coverage_report(output_base_dir: str) -> None:
+def generate_column_coverage_report(
+    output_base_dir: str, 
+    column_pattern: str, 
+    report_title: str,
+    column_filter: Optional[Callable[[str], bool]] = None,
+    specific_column: Optional[str] = None
+) -> None:
     """
-    Analyze processed files to report on ESR data availability and quality.
+    Generic function to analyze processed files for column data availability and quality.
     
     Args:
         output_base_dir: Base directory for processed files
+        column_pattern: String pattern to match in column names (case-insensitive)
+        report_title: Title for the report section
+        column_filter: Optional function to further filter columns beyond the pattern match
+        specific_column: Optional specific column to check for (e.g., 'ESR 20°C@120Hz')
     """
-    print("\nESR Data Analysis")
+    print(f"\n{report_title}")
     print("=" * 80)
     
     # Get all processed CSV files
@@ -68,16 +78,13 @@ def generate_esr_coverage_report(output_base_dir: str) -> None:
     
     # Initialize counters and data structures
     total_files = 0
-    files_with_low_freq_esr = 0  # ESR at 120Hz
-    files_with_high_freq_esr = 0  # ESR at higher frequencies
+    files_with_matching_columns = 0
+    files_with_specific_column = 0
     files_with_both = 0
-    files_with_null_esr = 0
+    files_with_null_values = 0
     
-    esr_columns_by_file = {}
-    null_esr_counts = {}
-    
-    # Standard low frequency ESR column
-    low_freq_esr_col = 'ESR 20°C@120Hz'
+    columns_by_file = {}
+    null_value_counts = {}
     
     # Analyze each file
     for file_path in csv_files:
@@ -85,59 +92,86 @@ def generate_esr_coverage_report(output_base_dir: str) -> None:
             df = pd.read_csv(file_path)
             total_files += 1
             
-            # Get all ESR columns
-            esr_cols = [col for col in df.columns if 'ESR' in col]
+            # Get all matching columns
+            matching_cols = [
+                col for col in df.columns 
+                if column_pattern.lower() in col.lower() and 
+                (column_filter is None or column_filter(col))
+            ]
             
-            # Check for low frequency ESR (120Hz)
-            has_low_freq_esr = low_freq_esr_col in df.columns
+            has_matching_cols = len(matching_cols) > 0
             
-            # Check for high frequency ESR columns (not 120Hz)
-            high_freq_esr_cols = [col for col in esr_cols if col != low_freq_esr_col]
-            has_high_freq_esr = len(high_freq_esr_cols) > 0
+            # Check for specific column if provided
+            has_specific_col = specific_column in df.columns if specific_column else False
             
             # Update counters
-            if has_low_freq_esr:
-                files_with_low_freq_esr += 1
+            if has_matching_cols:
+                files_with_matching_columns += 1
+                columns_by_file[file_path.stem] = matching_cols
                 
-                # Count null values in low frequency ESR
-                null_count = df[low_freq_esr_col].isna().sum()
-                total_count = len(df)
-                if null_count > 0:
-                    files_with_null_esr += 1
-                    null_esr_counts[file_path.stem] = (null_count, total_count)
+                # Count null values in matching columns
+                for col in matching_cols:
+                    null_count = df[col].isna().sum()
+                    total_count = len(df)
+                    if null_count > 0:
+                        files_with_null_values += 1
+                        null_value_counts[f"{file_path.stem}:{col}"] = (null_count, total_count)
+                        break  # Count file only once if any column has nulls
             
-            if has_high_freq_esr:
-                files_with_high_freq_esr += 1
-                esr_columns_by_file[file_path.stem] = high_freq_esr_cols
-            
-            if has_low_freq_esr and has_high_freq_esr:
-                files_with_both += 1
+            if specific_column:
+                if has_specific_col:
+                    files_with_specific_column += 1
+                    
+                    # Count null values in specific column
+                    null_count = df[specific_column].isna().sum()
+                    total_count = len(df)
+                    if null_count > 0:
+                        null_value_counts[f"{file_path.stem}:{specific_column}"] = (null_count, total_count)
+                
+                if has_matching_cols and has_specific_col:
+                    files_with_both += 1
                 
         except Exception as e:
             print(f"Error analyzing {file_path}: {str(e)}")
     
     # Print summary statistics
     print(f"\nTotal files analyzed: {total_files}")
-    print(f"Files with low frequency ESR (120Hz): {files_with_low_freq_esr} ({files_with_low_freq_esr/total_files*100:.1f}%)")
-    print(f"Files with high frequency ESR: {files_with_high_freq_esr} ({files_with_high_freq_esr/total_files*100:.1f}%)")
-    print(f"Files with both low and high frequency ESR: {files_with_both} ({files_with_both/total_files*100:.1f}%)")
+    print(f"Files with {column_pattern} data: {files_with_matching_columns} ({files_with_matching_columns/total_files*100:.1f}%)")
     
-    if files_with_low_freq_esr > 0:
-        print(f"Files with null low frequency ESR values: {files_with_null_esr} ({files_with_null_esr/files_with_low_freq_esr*100:.1f}% of files with low freq ESR)")
+    if specific_column:
+        print(f"Files with specific column '{specific_column}': {files_with_specific_column} ({files_with_specific_column/total_files*100:.1f}%)")
+        print(f"Files with both general and specific columns: {files_with_both} ({files_with_both/total_files*100:.1f}%)")
     
-    # Print details about files with null ESR values
-    if null_esr_counts:
-        print("\nFiles with null low frequency ESR values:")
+    if files_with_matching_columns > 0:
+        print(f"Files with null {column_pattern} values: {files_with_null_values} ({files_with_null_values/files_with_matching_columns*100:.1f}% of files with {column_pattern} data)")
+    
+    # Print details about files with null values
+    if null_value_counts:
+        print(f"\nFiles with null {column_pattern} values:")
         print("-" * 60)
-        for file_name, (null_count, total_count) in sorted(null_esr_counts.items(), key=lambda x: x[1][0]/x[1][1], reverse=True):
-            print(f"{file_name}: {null_count}/{total_count} values null ({null_count/total_count*100:.1f}%)")
+        for file_col, (null_count, total_count) in sorted(null_value_counts.items(), key=lambda x: x[1][0]/x[1][1], reverse=True):
+            print(f"{file_col}: {null_count}/{total_count} values null ({null_count/total_count*100:.1f}%)")
     
-    # Print details about high frequency ESR columns
-    if esr_columns_by_file:
-        print("\nFiles with high frequency ESR columns:")
+    # Print details about matching columns
+    if columns_by_file:
+        print(f"\nFiles with {column_pattern} columns:")
         print("-" * 60)
-        for file_name, columns in sorted(esr_columns_by_file.items()):
+        for file_name, columns in sorted(columns_by_file.items()):
             print(f"{file_name}: {', '.join(columns)}")
+
+def generate_esr_coverage_report(output_base_dir: str) -> None:
+    """
+    Analyze processed files to report on ESR data availability and quality.
+    
+    Args:
+        output_base_dir: Base directory for processed files
+    """
+    generate_column_coverage_report(
+        output_base_dir=output_base_dir,
+        column_pattern="ESR",
+        report_title="ESR Data Analysis",
+        specific_column='ESR 20°C@120Hz'
+    )
 
 def generate_ripple_coverage_report(output_base_dir: str) -> None:
     """
@@ -146,86 +180,36 @@ def generate_ripple_coverage_report(output_base_dir: str) -> None:
     Args:
         output_base_dir: Base directory for processed files
     """
-    print("\nRipple Current Data Analysis")
-    print("=" * 80)
+    def is_max_ripple(col: str) -> bool:
+        return 'max' not in col.lower()
     
-    # Get all processed CSV files
-    if not Path(output_base_dir).exists():
-        print(f"Error: Output directory {output_base_dir} does not exist")
-        return
+    generate_column_coverage_report(
+        output_base_dir=output_base_dir,
+        column_pattern="ripple",
+        report_title="Ripple Current Data Analysis",
+        column_filter=is_max_ripple
+    )
     
-    csv_files = list(Path(output_base_dir).glob("*.csv"))
-    if not csv_files:
-        print(f"No CSV files found in {output_base_dir}")
-        return
+    # Also generate a report specifically for max ripple current
+    generate_column_coverage_report(
+        output_base_dir=output_base_dir,
+        column_pattern="max ripple",
+        report_title="Max Ripple Current Data Analysis"
+    )
+
+def generate_impedance_coverage_report(output_base_dir: str) -> None:
+    """
+    Analyze processed files to report on Impedance data availability and quality.
     
-    # Initialize counters and data structures
-    total_files = 0
-    files_with_ripple_current = 0
-    files_with_max_ripple = 0
-    files_with_both = 0
-    files_with_null_ripple = 0
-    
-    ripple_columns_by_file = {}
-    null_ripple_counts = {}
-    
-    # Analyze each file
-    for file_path in csv_files:
-        try:
-            df = pd.read_csv(file_path)
-            total_files += 1
-            
-            # Check for ripple current columns
-            ripple_cols = [col for col in df.columns if 'ripple' in col.lower()]
-            has_ripple = len(ripple_cols) > 0
-            
-            # Check for max ripple columns specifically
-            max_ripple_cols = [col for col in ripple_cols if 'max' in col.lower()]
-            has_max_ripple = len(max_ripple_cols) > 0
-            
-            # Update counters
-            if has_ripple:
-                files_with_ripple_current += 1
-                ripple_columns_by_file[file_path.stem] = ripple_cols
-                
-                # Count null values in ripple current columns
-                for col in ripple_cols:
-                    null_count = df[col].isna().sum()
-                    total_count = len(df)
-                    if null_count > 0:
-                        files_with_null_ripple += 1
-                        null_ripple_counts[f"{file_path.stem}:{col}"] = (null_count, total_count)
-                        break  # Count file only once if any ripple column has nulls
-            
-            if has_max_ripple:
-                files_with_max_ripple += 1
-            
-            if has_ripple and has_max_ripple:
-                files_with_both += 1
-                
-        except Exception as e:
-            print(f"Error analyzing {file_path}: {str(e)}")
-    
-    # Print summary statistics
-    print(f"\nTotal files analyzed: {total_files}")
-    print(f"Files with ripple current data: {files_with_ripple_current} ({files_with_ripple_current/total_files*100:.1f}%)")
-    print(f"Files with max ripple current data: {files_with_max_ripple} ({files_with_max_ripple/total_files*100:.1f}%)")
-    print(f"Files with both regular and max ripple: {files_with_both} ({files_with_both/total_files*100:.1f}%)")
-    print(f"Files with null ripple current values: {files_with_null_ripple} ({files_with_null_ripple/files_with_ripple_current*100:.1f}% of files with ripple data)")
-    
-    # Print details about files with null ripple values
-    if null_ripple_counts:
-        print("\nFiles with null ripple current values:")
-        print("-" * 60)
-        for file_col, (null_count, total_count) in sorted(null_ripple_counts.items(), key=lambda x: x[1][0]/x[1][1], reverse=True):
-            print(f"{file_col}: {null_count}/{total_count} values null ({null_count/total_count*100:.1f}%)")
-    
-    # Print details about ripple current columns
-    if ripple_columns_by_file:
-        print("\nFiles with ripple current columns:")
-        print("-" * 60)
-        for file_name, columns in sorted(ripple_columns_by_file.items()):
-            print(f"{file_name}: {', '.join(columns)}")
+    Args:
+        output_base_dir: Base directory for processed files
+    """
+    generate_column_coverage_report(
+        output_base_dir=output_base_dir,
+        column_pattern="impedance",
+        report_title="Impedance Data Analysis",
+        specific_column='Impedance 20°C@100kHz'
+    )
 
 def generate_all_reports(file_infos: List, output_dir: str, include_header_mapping: bool = False) -> None:
     """
@@ -246,4 +230,7 @@ def generate_all_reports(file_infos: List, output_dir: str, include_header_mappi
     generate_esr_coverage_report(output_dir)
     
     print("Generating Ripple Current coverage report...")
-    generate_ripple_coverage_report(output_dir) 
+    generate_ripple_coverage_report(output_dir)
+    
+    print("Generating Impedance coverage report...")
+    generate_impedance_coverage_report(output_dir) 
