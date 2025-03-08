@@ -1,22 +1,17 @@
 import os
 from pathlib import Path
 from collections import defaultdict, Counter
-from typing import Dict, List, Tuple, Union, Callable, Optional
+from typing import Dict, List, Tuple, Union, Callable, Optional, Any
 from dataclasses import dataclass
-from enum import Enum
 import pandas as pd
 import numpy as np
 import re
 import logging
 from series_report_generator import generate_all_reports
+from thread_classes import TableType
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-class FileType(Enum):
-    RATINGS = "ratings"
-    DISSIPATION = "dissipation"
-    UNKNOWN = "unknown"
 
 @dataclass
 class FileInfo:
@@ -24,10 +19,37 @@ class FileInfo:
     relative_path: str
     raw_headers: List[str]      # Original headers before standardization
     mapped_headers: List[str]  # Headers after standardization
-    file_type: FileType
+    file_type: TableType
     series_name: str
-    standardized_filename: str  # The standardized filename for output
+    filename: str  # The filename for output
     df: pd.DataFrame # The processed DataFrame
+
+
+# Helper function to convert frequency string to numeric value in Hz
+def freq_to_numeric(freq_str: str) -> Optional[int]:
+    """Convert frequency string like "50Hz" or "10kHz" to numeric value in Hz"""
+    try:
+        # Extract numbers and units with regex
+        if not (match := re.match(r'(\d+)\s*(k?hz+)', freq_str.lower())):
+            return None
+            
+        value, unit = match.groups()
+        # Convert to base Hz value
+        if 'khz' in unit:
+            return int(value) * 1000
+        elif 'hz' in unit:
+            return int(value)
+        return None
+    except (ValueError, TypeError):
+        print(f"Error converting frequency to numeric: {freq_str}")
+        return None
+
+def numeric_to_freq_str(numeric_value: int) -> str:
+    """Convert numeric value in Hz to frequency string like "50Hz" or "10kHz" """
+    if numeric_value >= 1000:
+        return f"{numeric_value // 1000}kHz"
+    else:
+        return f"{numeric_value}Hz"
 
 def map_header_to_standard_name(header: str) -> str:
     """
@@ -47,9 +69,12 @@ def map_header_to_standard_name(header: str) -> str:
 
     def extract_frequency(header: str) -> str:
         """Extract frequency from header if present"""
-        freq_match = re.search(r'\d{2,}\s?(Hz|kHz)', header)
+        freq_match = re.search(r'\d{1,}\s?(hz|khz)', header.lower())
         if freq_match:
-            return freq_match.group(0).replace(' ', '')
+            return (freq_match.group(0)
+                .replace(' ', '')
+                .replace('khz', 'kHz')
+                .replace('hz', 'Hz'))
         return ''
 
     def extract_temp_freq(header: str) -> str:
@@ -76,7 +101,8 @@ def map_header_to_standard_name(header: str) -> str:
         r".*?(?:voltage|vdc|wv).*": "Voltage",
         r".*?leak.*current.*|^lc$": "Leakage Current",
         r".*?(?:tan.*[δd]|^df$|dissipation.*factor).*": "Dissipation Factor",
-        
+        r".*?(?:coefficient).*": "Coefficient",
+
         # Other parameters
         r".*?endurance.*": lambda x: f"Endurance {extract_temp_freq(x)}".strip(),
         r".*?part.*(?:no|number).*|^number$": "Part Number",
@@ -99,7 +125,10 @@ def map_header_to_standard_name(header: str) -> str:
             "Lead Space"
         ),
         r"^(?:[φøo]?l).*": "Case Size Length",
-        r"^(?:[φøo]?d).*": "Case Size Diameter",
+        r"^(?:[φøo]?d).*": "Case Size Diameter",\
+        # Frequency pattern - matches standalone frequency values
+        r"^(?:\d+(?:\.\d+)?(?:\s*(?:hz|khz|Hz|kHz)))$": lambda x: f"Frequency Coefficient {extract_frequency(x)}".strip(),
+        r"^\d{2,3}$": lambda x: f"Frequency Coefficient {x}Hz".strip(),
     }
     
     # Apply patterns to the header
@@ -112,53 +141,12 @@ def map_header_to_standard_name(header: str) -> str:
             return str(replacement)
     return header
 
-def classify_and_standardize_filename(filepath: str) -> Tuple[str, FileType]:
-    """
-    Standardize the filename by:
-    1. Converting series to lowercase
-    2. Using standard formats: {series}_ratings.csv or {series}_dissipation.csv
-    
-    Returns:
-        Tuple[str, FileType]: (standardized filename, file_type)
-    """
-    path = Path(filepath)
-    
-    # Get series name from the filename (everything before the first underscore or space)
-    series = path.stem.split('_')[0].split()[0].lower()
-    
-    if any(term in path.name.lower() for term in [
-        'dissipation',
-        'factor',
-        'tanδ',
-        'df',
-        'tangent of loss',
-        'tan δ',
-        'tan d'
-    ]):
-        return f"{series}_dissipation.csv", FileType.DISSIPATION
-    
-    # Check if this is a standard ratings file
-    if any(term in path.name.lower() for term in [
-        'standard size',
-        'standard rating',
-        'ratings list',
-        'characteristics list',
-        'capacitor characteristics'
-    ]):
-        return f"{series}_ratings.csv", FileType.RATINGS
-    
-    # For other files (like ripple current specs), keep original name but standardize series
-    rest_of_name = '_'.join(path.stem.split('_')[1:])
-    if rest_of_name:
-        return f"{series}_{rest_of_name}.csv", FileType.UNKNOWN
-    return path.name.lower(), FileType.UNKNOWN
-
 def convert_dissipation_table_to_standard_format(df: pd.DataFrame) -> pd.DataFrame:
     """
     Pivot a dissipation factor table with voltage columns into a two-column format.
     Input format:
         Voltage | 6.3V | 10V | 16V | ...
-        100uF  | 0.12 | 0.14| 0.15| ...
+        Dissipation Factor | 0.12 | 0.14| 0.15| ...
     Output format:
         Voltage | Dissipation Factor
         6.3V   | 0.12
@@ -184,6 +172,33 @@ def convert_dissipation_table_to_standard_format(df: pd.DataFrame) -> pd.DataFra
     
     return melted
 
+
+def convert_frequency_table_to_standard_format(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Pivot a frequency table with voltage columns into a two-column format.
+    Input format:
+        Frequency | Coefficient
+        50Hz      | 0.12
+        120Hz     | 0.14
+        300Hz     | 0.15
+    Output format:
+        Frequency | 50Hz | 120Hz | 300Hz | ...
+        Coefficient | 0.12 | 0.14| 0.15| ...
+    """
+    # Skip if already in correct format
+    has_coefficient_column = re.search(r'coefficient', str(list(df.columns)[1]).lower())
+    if not has_coefficient_column:
+        return df
+    
+    # Set frequency values as index then transpose
+    freq_df = df.set_index(df.columns[0])
+    transposed_df = freq_df.T
+
+    # Reset index and rename the index column to 'Frequency'
+    transposed_df = transposed_df.reset_index().drop(['index'], axis=1)
+    transposed_df.columns.name = None
+    return transposed_df
+
 def find_csv_files(input_dir: str) -> List[str]:
     """Find all CSV files in the input directory."""
     csv_files = []
@@ -208,7 +223,118 @@ def remove_empty_columns(input_df: pd.DataFrame) -> pd.DataFrame:
     
     return df
 
-def clean_and_convert_column_values(input_df: pd.DataFrame) -> pd.DataFrame:
+def calculate_esr_from_dissipation(
+    input_df: pd.DataFrame, 
+    frequency: float = 120.0, 
+    temperature: int = 20
+) -> pd.DataFrame:
+    """
+    Compute ESR from Dissipation Factor and Capacitance at a specified frequency.
+    Automatically applies frequency coefficient if a matching column exists.
+    
+    Args:
+        input_df: DataFrame containing 'Dissipation Factor' and 'Capacitance' columns
+        frequency: Frequency in Hz to calculate ESR at (default: 120Hz)
+        temperature: Temperature in °C to include in the column name (default: 20)
+        
+    Returns:
+        A new DataFrame with added ESR column
+    """
+    # Create a copy of the DataFrame to avoid modifying the input
+    df = input_df.copy()
+    # Find matching frequency coefficient column if it exists
+    freq_str = f"{int(frequency)}Hz" if frequency < 1000 else f"{int(frequency/1000)}kHz"
+    coef_column_name = f"Frequency Coefficient {freq_str}"
+    required_columns = ['Dissipation Factor', 'Capacitance', 'Frequency Coefficient 120Hz', coef_column_name]
+    if not all(col in df.columns for col in required_columns):
+        return df
+
+    def compute_esr_value(row):
+        """
+        Compute ESR from Dissipation Factor and Capacitance at a specified frequency.
+        Formula: ESR = DF / (2π × f × C)
+            - DF is Dissipation Factor (unitless)
+            - f is frequency in Hz
+            - C is capacitance in Farads
+        Automatically applies frequency coefficient if available.
+        """
+        if not (pd.notnull(row['Dissipation Factor']) and pd.notnull(row['Capacitance']) and row['Capacitance'] > 0):
+            return None
+        # used to account for the fact that the tanδ is higher at higher capacitance values
+        capacitance_factor_offset = ((row['Capacitance']  - 1000) // 1000 + 1) * 0.02
+        esr = (row['Dissipation Factor'] + capacitance_factor_offset) / (2 * 3.14159 * 120 * row['Capacitance'] * 1e-6)
+        
+        # Apply frequency coefficient if available
+        if pd.notnull(row.get(coef_column_name)):
+            esr /= row[coef_column_name] ** 2
+            
+        return round(esr, 3)
+    
+    # Format temperature for column name
+    temp_str = f"{temperature}°C"
+    column_name = f"ESR(est.) {temp_str}@{freq_str}"
+    
+    df[column_name] = df.apply(compute_esr_value, axis=1)
+    
+    return df
+
+def extract_numerical_values_with_ranges(value: str) -> Union[str, Any]:
+    """
+    Extract numerical values from a string while preserving range indicators.
+    Examples:
+        "100V-200V" -> "100-200"
+        "10 to 20 kHz" -> "10 to 20"
+        "≥ 50Hz" -> "≥ 50"
+        "10.5V" -> "10.5"
+    
+    Args:
+        value: String value to process
+        
+    Returns:
+        String with extracted numerical values and preserved range indicators
+    """
+    if pd.isna(value) or not isinstance(value, str):
+        return value
+        
+    # Special case for "greater than" or "less than" indicators
+    if any(indicator in value.lower() for indicator in ['≥', '>=', '>', '<', '≤', '<=']):
+        # Extract the operator and the number
+        op_match = re.search(r'([≥>≤<]=?)\s*(\d+(?:\.\d+)?)', value)
+        if op_match:
+            operator, number = op_match.groups()
+            return f"{operator} {number}"
+    
+    # Check if this is a range with a separator (-, ~, ～, to)
+    # Use regex to split by any range separator
+    range_separator_pattern = r'[-~～]|\s+to\s+'
+    if re.search(range_separator_pattern, value):
+        parts = re.split(range_separator_pattern, value)
+        
+        # Extract numericals from each part
+        numeric_parts = []
+        for part in parts:
+            num_match = re.search(r'(\d+(?:\.\d+)?)', part)
+            if num_match:
+                numeric_parts.append(num_match.group(1))
+            else:
+                numeric_parts.append('')
+                
+        # Reconstruct with the found separator
+        if all(numeric_parts):
+            # Get the actual separator used
+            separator_match = re.search(range_separator_pattern, value)
+            if separator_match:
+                separator = separator_match.group(0)
+                return separator.join(numeric_parts)
+            else:
+                # Fallback to hyphen if we can't determine the separator (shouldn't happen)
+                return '-'.join(numeric_parts)
+    
+    # Default case: just extract the first number
+    num_match = re.search(r'(\d+(?:\.\d+)?)', value)
+    return num_match.group(1) if num_match else value
+
+def clean_and_convert_values(input_df: pd.DataFrame, cast_numeric_columns: bool = False) -> pd.DataFrame:
     """
     Standardize values in the dataframe based on column type.
     - Replace placeholder values (dashes, N/A, etc.) with None using regex
@@ -226,6 +352,7 @@ def clean_and_convert_column_values(input_df: pd.DataFrame) -> pd.DataFrame:
     df = input_df.copy()
     
     numerical_columns = [
+        'Voltage',
         'Capacitance', 
         'ESR', 
         'Impedance', 
@@ -235,7 +362,7 @@ def clean_and_convert_column_values(input_df: pd.DataFrame) -> pd.DataFrame:
         'Dissipation Factor',
         'Frequency',
         'Case Size Diameter',
-        'Case Size Length'
+        'Case Size Length',
     ]
     
     placeholder_pattern = r'^(\s*|—|–|-|\.{1,3}|N/?A|n/?a|NA|na)$'
@@ -265,16 +392,10 @@ def clean_and_convert_column_values(input_df: pd.DataFrame) -> pd.DataFrame:
                 logger.warning(f"No DxL matches found for Case Size in column {col}")
             df.drop(columns=[col], inplace=True)
             continue
-        elif col == 'Voltage':
-            # Voltage is a special case because it can have ranges like "100V-245V"
-            #  that will get expanded into multiple rows later
-            df[col] = df[col].str.replace(r'([vV])', '', regex=True)
-        elif col in numerical_columns:
-            # Extract numerical values and convert to numeric
-            df[col] = df[col].str.extract(r'(\d+(?:\.\d+)?)', expand=False)
-            # First convert to numeric values
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-        
+        elif (col in numerical_columns) or (str(col).startswith('Frequency Coefficient')):
+            df[col] = df[col].apply(extract_numerical_values_with_ranges)
+            if cast_numeric_columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
         i += 1
     
     return df
@@ -314,21 +435,40 @@ def parse_and_standardize_file(input_path: str) -> Optional[FileInfo]:
         input_path: Path to the input CSV file
     
     Returns:
-        FileInfo object containing the processed DataFrame and metadata, or None if file type is unknown
+        FileInfo object containing the processed DataFrame and metadata, or None if file type can't be determined
     """
     manufacturer = os.path.basename(os.path.dirname(input_path))
     
-    # Classify the file by examining its name
-    file_name = os.path.basename(input_path)
-    std_filename, file_type = classify_and_standardize_filename(file_name)
-    series_name = Path(std_filename).stem.split('_')[0]
+    # Get filename and determine file type directly from the filename
+    filename = os.path.basename(input_path)
+    path = Path(filename)
     
-    # Skip unknown file types
-    if file_type == FileType.UNKNOWN:
-        logger.warning(f"File {input_path} is neither a ratings nor a dissipation file. Skipping.")
+    # Extract series name (everything before the first underscore)
+    series_name = path.stem.split('_')[0].lower()
+    
+    # Determine file type from filename
+    file_type = None
+    if "dissipation" in path.stem.lower():
+        file_type = TableType.DISSIPATION
+    elif "frequency" in path.stem.lower():
+        file_type = TableType.FREQUENCY
+    elif "ratings" in path.stem.lower():
+        file_type = TableType.RATINGS
+    else:
+        # Don't default to RATINGS, print a warning and return None
+        logger.warning(f"Could not determine file type for {input_path}. Skipping file.")
+        return None
+    # Check if file is empty
+    if os.path.getsize(input_path) == 0:
+        logger.warning(f"File {input_path} is empty. Skipping.")
         return None
     
     df = pd.read_csv(input_path, encoding='utf-8', on_bad_lines='error')
+    # Check if df has any data
+    if df.empty:
+        logger.warning(f"File {input_path} is empty. Skipping.")
+        return None
+
     logger.debug(f"Processing file: {input_path}")
     logger.debug(f"Original columns: {list(df.columns)}")
     
@@ -336,8 +476,16 @@ def parse_and_standardize_file(input_path: str) -> Optional[FileInfo]:
     raw_headers = list(df.columns)
 
     # If this is a dissipation factor table, pivot it
-    if file_type == FileType.DISSIPATION:
+    if file_type == TableType.DISSIPATION:
         df = convert_dissipation_table_to_standard_format(df)
+
+    if file_type == TableType.FREQUENCY:
+        df = convert_frequency_table_to_standard_format(df)
+        # Standard frequency values often used in datasheets
+        standard_frequencies = ["50Hz", "60Hz", "120Hz", "300Hz", "1kHz", "10kHz", "100kHz"]
+        
+        # Expand columns with ranges
+        df = expand_range_columns(df, standard_frequencies, value_converter=freq_to_numeric)
     
     df = df.rename(columns=lambda x: map_header_to_standard_name(x))
     logger.debug(f"After standardizing headers: {list(df.columns)}")
@@ -346,8 +494,8 @@ def parse_and_standardize_file(input_path: str) -> Optional[FileInfo]:
     df = make_column_names_unique(df)
     
     mapped_headers = list(df.columns)
-    
-    df = clean_and_convert_column_values(df)
+
+    df = clean_and_convert_values(df)
     logger.debug(f"After standardizing values: {list(df.columns)}")
 
     # Create file info with the DataFrame embedded
@@ -358,56 +506,165 @@ def parse_and_standardize_file(input_path: str) -> Optional[FileInfo]:
         mapped_headers=mapped_headers,
         file_type=file_type,
         series_name=series_name,
-        standardized_filename=std_filename,
+        filename=filename,
         df=df
     )
     
     return file_info
 
-def calculate_esr_from_dissipation(input_df: pd.DataFrame, frequency: float = 120.0, temperature: int = 20) -> pd.DataFrame:
+def expand_range_columns(
+    df: pd.DataFrame, 
+    standard_values: Optional[List[str]] = None,
+    value_converter: Optional[Callable[[str], Any]] = None
+) -> pd.DataFrame:
     """
-    Compute ESR from Dissipation Factor and Capacitance at a specified frequency.
+    Expand columns with ranges in their names into individual columns.
+    For example:
+        - "50Hz to 60Hz" becomes two columns: "50Hz" and "60Hz"
+        - "10kHz or more" or "≥10kHz" gets mapped to all frequencies >= 10kHz in standard_values
     
     Args:
-        input_df: DataFrame containing 'Dissipation Factor' and 'Capacitance' columns
-        frequency: Frequency in Hz to calculate ESR at (default: 120Hz)
-        temperature: Temperature in °C to include in the column name (default: 20)
+        df: DataFrame containing columns with ranges in their names
+        standard_values: Optional list of standard values to use for "or more" patterns
+        value_converter: Function to convert string values to comparable types for sorting.
+                       If None, values are compared as strings.
+    
+    Returns:
+        DataFrame with expanded columns
+    """
+    result_df = df.copy()
+    
+    # Use default string comparison if no converter provided
+    if value_converter is None:
+        value_converter = lambda x: x
+    
+    # Identify columns with ranges that need to be expanded
+    for col in result_df.columns:
+        col_str = str(col)
+        
+        # Case 1: "X to Y" pattern
+        range_patterns = r'\s+to\s+|\s*,\s*'
+        if re.search(range_patterns, col_str.lower()):
+            range_parts = re.split(range_patterns, col_str.lower())
+            # closed range
+            if len(range_parts) == 2:
+                start_value, end_value = range_parts
+                result_df[start_value] = result_df[col]
+                result_df[end_value] = result_df[col]
+            # open ended range
+            else:
+                start_value = range_parts[0]
+                result_df[start_value] = result_df[col]
+            # Drop the original column
+            result_df = result_df.drop(columns=[col])
+      
+        # Case 2: "X or more" pattern with standard values
+        elif any(pattern in col_str.lower() for pattern in ["or more", "≥", ">="]) and standard_values:
+            # Extract the base value using regex patterns for different notations            
+            # Pattern 1: "X or more"
+            if "or more" in col_str.lower():
+                base_value = col_str.lower().split(" or more")[0].strip()
+            # Pattern 2: "≥X" or ">=X"
+            elif any(op in col_str for op in ["≥", ">="]):
+                # Match pattern like "≥10kHz" or ">=10kHz"
+                if match := re.search(r'[≥>][=]?\s*(\d+\s*[a-zA-Z]+)', col_str):
+                    base_value = match.group(1)
+            else:
+                continue
+                
+            # Find all standard values that are greater than or equal to the base value
+            for std_val in standard_values:
+                # Convert values for comparison
+                std_converted = value_converter(std_val)
+                base_converted = value_converter(base_value)
+                
+                # Skip if conversion fails
+                if std_converted is None or base_converted is None:
+                    continue
+                    
+                # If standard value is >= base value, create a new column
+                if base_converted <= std_converted:
+                    result_df[std_val] = result_df[col]
+            
+            # Drop the original column
+            result_df = result_df.drop(columns=[col])
+        else:
+            continue
+    
+    return result_df
+
+
+def resolve_value_ranges(
+    source_df: pd.DataFrame, 
+    reference_df: pd.DataFrame, 
+    column_name: str = 'Voltage'
+) -> pd.DataFrame:
+    """
+    Expand ranges in a column by matching with actual values from a reference dataframe.
+    
+    Args:
+        source_df: DataFrame containing ranges to expand
+        reference_df: DataFrame containing specific values to match against
+        column_name: Name of the column to process (default: 'Voltage')
         
     Returns:
-        A new DataFrame with added ESR column
+        DataFrame with expanded rows where ranges are replaced with specific values
     """
-    # Create a copy of the DataFrame to avoid modifying the input
-    df = input_df.copy()
+    if column_name not in reference_df.columns:
+        logger.warning(f"Reference dataframe does not contain column '{column_name}'")
+        return source_df
     
-    if 'Dissipation Factor' in df.columns and 'Capacitance' in df.columns:
-        def compute_esr_value(row):
-            """
-            Compute ESR from Dissipation Factor and Capacitance at a specified frequency.
-            Formula: ESR = DF / (2π × f × C)
-                - DF is Dissipation Factor (unitless)
-                - f is frequency in Hz
-                - C is capacitance in Farads
-            Since capacitance values in datasheets are typically in microfarads (μF),
-            we need to convert to Farads by multiplying by 1e-6 (1 μF = 10^-6 F)
-            """
-            if pd.notnull(row['Dissipation Factor']) and pd.notnull(row['Capacitance']) and row['Capacitance'] > 0:
-                return round(row['Dissipation Factor'] / (2 * 3.14159 * frequency * row['Capacitance'] * 1e-6), 3)
-            else:
-                return None
-        
-        # Format frequency for column name (e.g., "120Hz" or "100kHz")
-        freq_str = f"{int(frequency)}Hz" if frequency < 1000 else f"{frequency/1000:.0f}kHz"
-        
-        # Format temperature for column name (e.g., "20°C" or "-40°C")
-        temp_str = f"{temperature}°C"
-        
-        column_name = f"ESR {temp_str}@{freq_str}"
-        
-        df[column_name] = df.apply(compute_esr_value, axis=1)
+    if column_name not in source_df.columns:
+        logger.warning(f"Source dataframe does not contain column '{column_name}'")
+        return source_df
     
-    return df
+    available_values = sorted(reference_df[column_name].unique())
+    if not available_values:
+        logger.warning(f"No values found in reference dataframe for column '{column_name}'")
+        return source_df
+    
+    expanded_rows = []
+    
+    for _, row in source_df.iterrows():
+        # Skip if the value is not a string or is NaN
+        if not isinstance(row[column_name], str) and not pd.isna(row[column_name]):
+            expanded_rows.append(row.to_dict())
+            continue
+            
+        # Skip if the value doesn't contain a range separator
+        separators = r'[~～\-/]|to'
+        if not re.search(separators, str(row[column_name])):
+            expanded_rows.append(row.to_dict())
+            continue
+        
+        # Extract range bounds
+        try:
+            start_str, end_str = re.split(separators, str(row[column_name]))
+            start_num = float(start_str.strip())
+            end_num = float(end_str.strip())
+        except (ValueError, TypeError):
+            # If we can't parse the range, keep the original row
+            logger.warning(f"Could not parse range '{row[column_name]}' in column '{column_name}'")
+            expanded_rows.append(row.to_dict())
+            continue
 
-def process_ratings_with_dissipation(ratings_df: pd.DataFrame, dissipation_df: pd.DataFrame) -> pd.DataFrame:
+        # Find matching values in the reference dataframe
+        matching_values = [v for v in available_values if start_num <= float(v) <= end_num]
+
+        if matching_values:
+            # Create a new row for each matching value
+            for v in matching_values:
+                new_row = row.to_dict()
+                new_row[column_name] = v
+                expanded_rows.append(new_row)
+        else:
+            # If no matches found, keep the original row
+            expanded_rows.append(row.to_dict())
+
+    return pd.DataFrame(expanded_rows)
+
+
+def merge_ratings_with_dissipation(ratings_df: pd.DataFrame, dissipation_df: pd.DataFrame) -> pd.DataFrame:
     """
     Process a series that has both ratings and dissipation data.
     Merges the dissipation data into the ratings table and computes ESR.
@@ -423,11 +680,10 @@ def process_ratings_with_dissipation(ratings_df: pd.DataFrame, dissipation_df: p
     ratings_df = ratings_df.copy()
     dissipation_df = dissipation_df.copy()
     
-    expanded_dissipation_df = resolve_voltage_ranges_to_specific_values(dissipation_df, ratings_df)
-    
-    # Ensure Voltage is properly formatted for joining
-    ratings_df['Voltage'] = ratings_df['Voltage'].astype(float)
-    expanded_dissipation_df['Voltage'] = expanded_dissipation_df['Voltage'].astype(float)
+    expanded_dissipation_df = resolve_value_ranges(dissipation_df, ratings_df, 'Voltage')
+
+    expanded_dissipation_df = clean_and_convert_values(expanded_dissipation_df, cast_numeric_columns=True)
+    ratings_df = clean_and_convert_values(ratings_df, cast_numeric_columns=True)
 
     # Left join to keep all ratings rows
     merged_df = pd.merge(
@@ -436,12 +692,76 @@ def process_ratings_with_dissipation(ratings_df: pd.DataFrame, dissipation_df: p
         on='Voltage',
         how='left'
     )
+
+    return merged_df
+
+def merge_ratings_with_frequency(ratings_df: pd.DataFrame, frequency_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Process a series that has both ratings and frequency data.
+    Merges the frequency data into the ratings table and computes ESR.
+    
+    Args:
+        ratings_df: DataFrame containing ratings data
+        frequency_df: DataFrame containing frequency data
+        
+    Returns:
+        DataFrame with merged data and computed ESR
+    """
+    # Create copies to avoid modifying the input DataFrames
+    ratings_df = ratings_df.copy()
+    ratings_df = clean_and_convert_values(ratings_df, cast_numeric_columns=True)
+    ratings_df['VC'] = ratings_df['Capacitance'] * ratings_df['Voltage']
+    cols_to_join = [col for col 
+        in ['Capacitance', 'Voltage', 'VC', 'Case Size Diameter']
+        if col in frequency_df.columns and col in ratings_df.columns
+    ]
+    expanded_frequency_df = frequency_df.copy()
+    for col in cols_to_join:
+        if not (col in frequency_df.columns and col in ratings_df.columns):
+            continue
+        expanded_frequency_df = resolve_value_ranges(expanded_frequency_df, ratings_df, col)
+
+    cleaned_frequency_df = clean_and_convert_values(expanded_frequency_df, cast_numeric_columns=True)
+
+    # Normalize frequency coefficients so 120Hz = 1.0
+    frequency_columns = [col for col in cleaned_frequency_df.columns 
+                         if re.match(r'^Frequency Coefficient \d+.*Hz$', col)]
+    
+    # Find the 120Hz column
+    hz_120_column = next((col for col in frequency_columns 
+                         if col == 'Frequency Coefficient 120Hz'), None)
+    
+    if hz_120_column:
+        # Only normalize rows where 120Hz value is not null and not zero
+        valid_rows = cleaned_frequency_df[hz_120_column].notna() & (cleaned_frequency_df[hz_120_column] != 0)
+        unadjusted_df = cleaned_frequency_df.copy()
+        if valid_rows.any():
+            # For each frequency column, divide by the 120Hz value row-wise
+            for freq_col in frequency_columns:
+                cleaned_frequency_df.loc[valid_rows, freq_col] = (
+                    unadjusted_df.loc[valid_rows, freq_col] / 
+                    unadjusted_df.loc[valid_rows, hz_120_column]
+                ).apply(lambda x: round(x, 2))
+    
+    # Ensure Capacitance is properly formatted for joining
+    for col in cols_to_join:
+        ratings_df[col] = ratings_df[col].astype(float)
+        cleaned_frequency_df[col] = cleaned_frequency_df[col].astype(float)
+
+    # Left join to keep all ratings rows
+    merged_df = pd.merge(
+        ratings_df,
+        cleaned_frequency_df,
+        on=cols_to_join if cols_to_join else None,
+        how='left' if cols_to_join else 'cross'
+    )
      
     # Calculate ESR at standard frequencies
+    # Base frequency calculation at 120Hz
     merged_df = calculate_esr_from_dissipation(merged_df, frequency=120.0, temperature=20)
     
-    # Optionally calculate ESR at 100kHz if needed
-    # merged_df = calculate_esr_from_dissipation(merged_df, frequency=100000.0, temperature=20)
+    # High frequency calculation at 100kHz (with automatic coefficient application)
+    merged_df = calculate_esr_from_dissipation(merged_df, frequency=100_000.0, temperature=20)
     
     return merged_df
 
@@ -454,59 +774,30 @@ def process_series_tables_by_type(file_infos: List[FileInfo]) -> List[FileInfo]:
     
     # Process each series
     for series_name, group in series_groups.items():
-        ratings_info = None
-        dissipation_info = None
-        
+        ratings_info, dissipation_info, frequency_info = None, None, None
+
         for file_info in group:
-            if file_info.file_type == FileType.RATINGS:
+            if file_info.file_type == TableType.RATINGS:
                 ratings_info = file_info
-            elif file_info.file_type == FileType.DISSIPATION:
+            elif file_info.file_type == TableType.DISSIPATION:
                 dissipation_info = file_info
+            elif file_info.file_type == TableType.FREQUENCY:
+                frequency_info = file_info
         
         # Process files based on what we have
         if ratings_info:
             if dissipation_info and "Dissipation Factor" not in ratings_info.df.columns:
                 # We have both ratings and dissipation, and need to merge in dissipation data
-                ratings_info.df = process_ratings_with_dissipation(ratings_info.df, dissipation_info.df)
-            else:
+                ratings_info.df = merge_ratings_with_dissipation(ratings_info.df, dissipation_info.df)
+            if frequency_info:
                 # Only ratings data, calculate ESR if dissipation factor is present
-                ratings_info.df = calculate_esr_from_dissipation(ratings_info.df.copy(), temperature=20)
+                ratings_info.df = merge_ratings_with_frequency(ratings_info.df, frequency_info.df)
+            if not dissipation_info and not frequency_info:
+                # Only ratings data, calculate ESR if dissipation factor is present
+                ratings_info.df = clean_and_convert_values(ratings_info.df, cast_numeric_columns=True)
     
     return file_infos
 
-def resolve_voltage_ranges_to_specific_values(dissipation_df: pd.DataFrame, ratings_df: pd.DataFrame) -> pd.DataFrame:
-    """Expand voltage ranges in dissipation tables by matching with actual voltages from ratings file. """
-    if 'Voltage' not in ratings_df.columns:
-        print("Warning: Ratings file does not contain Voltage column")
-        return dissipation_df
-    
-    available_voltages = sorted(ratings_df['Voltage'].unique())
-    if not available_voltages:
-        print("Warning: No voltage values found in ratings file")
-        return dissipation_df
-    
-    expanded_rows = []
-    
-    for _, row in dissipation_df.iterrows():
-        separators = r'[~～\-/]|to'
-        if not re.search(separators, str(row['Voltage'])):
-            expanded_rows.append(row.to_dict())
-            continue
-        
-        start_str, end_str = re.split(separators, str(row['Voltage']))
-
-        start_num = float(start_str.strip())
-        end_num = float(end_str.strip())
-        
-        matching_voltages = [v for v in available_voltages if start_num <= float(v) <= end_num]
-
-        if matching_voltages:
-            for v in matching_voltages:
-                expanded_rows.append(row.to_dict() | {'Voltage': v})
-        else:
-            expanded_rows.append(row.to_dict())
-
-    return pd.DataFrame(expanded_rows)
 
 def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
     """
@@ -519,23 +810,24 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
     files_saved = 0
     files_skipped = 0
     
-    priority_cols = ['Voltage', 'Capacitance', 'ESR 20°C@120Hz', 'ESR 20°C@100kHz', 'Impedance 20°C@100kHz', 'Case Size Diameter', 'Case Size Length']
+    priority_cols = ['Voltage', 'Capacitance', 'ESR 20°C@100kHz', 'ESR(est.) 20°C@10kHz', 'ESR(est.) 20°C@100kHz', 'Impedance 20°C@100kHz', 'Case Size Diameter', 'Case Size Length']
     all_series_data = []
     
     for file_info in file_infos:
-        if file_info.file_type == FileType.DISSIPATION:
+        if file_info.file_type == TableType.DISSIPATION:
             files_skipped += 1
             logger.debug(f"Skipping dissipation file: {file_info.relative_path}")
             continue
         
-        if file_info.file_type == FileType.UNKNOWN:
+        file_output_path = output_path / file_info.filename
+        
+        if file_info.file_type == TableType.FREQUENCY:
+            # Save frequency coefficient files directly
             files_skipped += 1
-            logger.info(f"Skipping unknown file type: {file_info.relative_path}")
+            logger.debug(f"Skipping frequency coefficient file: {file_info.filename}")
             continue
             
-        file_output_path = output_path / file_info.standardized_filename
-            
-        if file_info.file_type == FileType.RATINGS:
+        if file_info.file_type == TableType.RATINGS:
             df = file_info.df.copy()
             
             available_priority_cols = [col for col in priority_cols if col in df.columns]
@@ -552,7 +844,7 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
             # Save the individual file
             df.to_csv(file_output_path, index=False)
             files_saved += 1
-            logger.debug(f"Saved {file_info.standardized_filename}")
+            logger.debug(f"Saved {file_info.filename}")
             
             # Add metadata for consolidated file
             df['Series'] = file_info.series_name
@@ -567,7 +859,7 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
         consolidated_df = consolidated_df.drop(columns=['ESR 20°C@100kHz', 'Impedance 20°C@100kHz'], errors='ignore')
         
         # Define columns for consolidated output
-        output_cols = ['Series', 'Manufacturer', 'Voltage', 'Capacitance', 'ESR 20°C@120Hz', 'ESR/Z 20°C@100kHz', 'Case Size Diameter', 'Case Size Length']
+        output_cols = ['Series', 'Manufacturer', 'Voltage', 'Capacitance', 'ESR(est.) 20°C@10kHz', 'ESR (est.) 20°C@100kHz', 'ESR/Z 20°C@100kHz', 'Case Size Diameter', 'Case Size Length']
         
         # Keep only columns that exist in the dataframe
         available_cols = [col for col in output_cols if col in consolidated_df.columns]
@@ -611,7 +903,7 @@ def main():
     save_processed_files(processed_file_infos, output_dir)
     
     # Step 5: Generate reports
-    generate_all_reports(file_infos, output_dir, include_header_mapping=False)
+    # generate_all_reports(file_infos, output_dir, include_header_mapping=False)
     
     print("Processing complete!")
 

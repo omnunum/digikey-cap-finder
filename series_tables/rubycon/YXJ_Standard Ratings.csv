@@ -1,4 +1,4 @@
-Rated Voltage (Vdc),Capacitance (μF),Size φD×L (mm),Rated Ripple Current,Impedance 20℃ 100kHz,Impedance -10℃ 100kHz
+Rated Voltage (Vdc),Capacitance (μF),Size φD×L (mm),Rated Ripple Current 105C 100kHz,Impedance 20℃ 100kHz,Impedance -10℃ 100kHz
 6.3,100.0,5×11,150,0.9,3.6
 6.3,220.0,5×11,250,0.4,1.2
 6.3,330.0,6.3×11,340,0.22,0.87

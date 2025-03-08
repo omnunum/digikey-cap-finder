@@ -1,0 +1,25 @@
+Voltage,Capacitance,ESR 20°C@100kHz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current 105°C@100kHz,Status,Vibration resistant,Weight (g)
+2.5,330,0.008,6.3,9,-55,105,0.08,5000,500,3000,PLS0E331MCO8,Uni-Polar,Radial Lead,Long Life,4800,NRND,Normal,0.45
+2.5,680,0.015,8,7,-55,105,0.08,5000,340,2000,PLS0E681MCL2,Uni-Polar,Radial Lead,Long Life,3900,NRND,Normal,0.55
+2.5,820,0.008,6.3,9,-55,105,0.08,5000,500,3000,PLS0E821MCO8,Uni-Polar,Radial Lead,Long Life,4800,NRND,Normal,0.45
+2.5,820,0.007,8,9,-55,105,0.08,5000,410,2000,PLS0E821MCO6,Uni-Polar,Radial Lead,Long Life,5200,NRND,Normal,0.75
+2.5,820,0.007,8,12,-55,105,0.08,5000,410,2000,PLS0E821MDO1,Uni-Polar,Radial Lead,Long Life,5800,NRND,Normal,0.95
+2.5,1500,0.008,10,13,-55,105,0.08,5000,750,1000,PLS0E152MDO1,Uni-Polar,Radial Lead,Long Life,5500,NRND,Normal,1.5
+4,270,0.008,6.3,9,-55,105,0.08,5000,500,3000,PLS0G271MCO8,Uni-Polar,Radial Lead,Long Life,4800,NRND,Normal,0.45
+4,560,0.015,8,7,-55,105,0.08,5000,448,2000,PLS0G561MCL2,Uni-Polar,Radial Lead,Long Life,3900,NRND,Normal,0.55
+4,560,0.007,8,9,-55,105,0.08,5000,448,2000,PLS0G561MCO6,Uni-Polar,Radial Lead,Long Life,5200,NRND,Normal,0.75
+4,680,0.007,8,12,-55,105,0.08,5000,544,2000,PLS0G681MDO1,Uni-Polar,Radial Lead,Long Life,5800,NRND,Normal,0.95
+4,1200,0.008,10,13,-55,105,0.08,5000,960,1000,PLS0G122MDO1,Uni-Polar,Radial Lead,Long Life,5500,NRND,Normal,1.5
+6.3,330,0.02,6.3,10.5,-55,105,0.08,5000,416,3000,PLS0J331MDL4,Uni-Polar,Radial Lead,Long Life,3000,NRND,Normal,0.5
+6.3,390,0.015,8,7,-55,105,0.08,5000,491,2000,PLS0J391MCL2,Uni-Polar,Radial Lead,Long Life,3900,NRND,Normal,0.55
+6.3,470,0.007,8,12,-55,105,0.08,5000,592,2000,PLS0J471MDO1,Uni-Polar,Radial Lead,Long Life,5500,NRND,Normal,0.95
+6.3,560,0.009,6.3,9,-55,105,0.08,5000,706,3000,PLS0J561MCO8,Uni-Polar,Radial Lead,Long Life,4300,NRND,Normal,0.45
+6.3,560,0.008,8,9,-55,105,0.08,5000,706,2000,PLS0J561MCO6,Uni-Polar,Radial Lead,Long Life,5000,NRND,Normal,0.75
+6.3,820,0.008,10,13,-55,105,0.08,5000,1033,1000,PLS0J821MDO1,Uni-Polar,Radial Lead,Long Life,5500,NRND,Normal,1.5
+10,150,0.02,6.3,10.5,-55,105,0.08,5000,300,3000,PLS1A151MDL4,Uni-Polar,Radial Lead,Long Life,3000,NRND,Normal,0.5
+10,270,0.008,8,12,-55,105,0.08,5000,540,2000,PLS1A271MDO1,Uni-Polar,Radial Lead,Long Life,4900,NRND,Normal,0.95
+10,470,0.008,10,13,-55,105,0.08,5000,940,1000,PLS1A471MDO1,Uni-Polar,Radial Lead,Long Life,5500,NRND,Normal,1.5
+16,100,0.024,6.3,10.5,-55,105,0.08,5000,320,3000,PLS1C101MDL4,Uni-Polar,Radial Lead,Long Life,2800,NRND,Normal,0.5
+16,270,0.009,8,12,-55,105,0.08,5000,864,2000,PLS1C271MDO1,Uni-Polar,Radial Lead,Long Life,4500,NRND,Normal,0.95
+16,330,0.009,10,13,-55,105,0.08,5000,1056,1000,PLS1C331MDO1,Uni-Polar,Radial Lead,Long Life,4700,NRND,Normal,1.5
+16,470,0.009,10,13,-55,105,0.08,5000,1504,1000,PLS1C471MDO1,Uni-Polar,Radial Lead,Long Life,4700,NRND,Normal,1.5

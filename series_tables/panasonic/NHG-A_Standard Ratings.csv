@@ -1,4 +1,4 @@
-Rated voltage (V),Capacitance (μF),øD,L,Ripple current (mA rms),tan δ,Endurance (h),Lead dia (ød),Lead space Straight,Lead space Taping ✽B,Lead space Taping ✽i,Part No.,Straight leads,Taping
+Rated voltage (V),Capacitance (μF),øD,L,Ripple current (mA rms) 105C 120Hz,tan δ,Endurance (h),Lead dia (ød),Lead space Straight,Lead space Taping ✽B,Lead space Taping ✽i,Part No.,Straight leads,Taping
 6.3,100.0,5.0,11.0,91,0.28,1000,0.5,2.0,5.0,2.5,ECA0JHG101( ),200,2000
 6.3,220.0,5.0,11.0,140,0.28,1000,0.5,2.0,5.0,2.5,ECA0JHG221( ),200,2000
 6.3,470.0,6.3,11.2,200,0.28,1000,0.5,2.5,5.0,2.5,ECA0JHG471( ),200,2000

@@ -1,4 +1,4 @@
-Rated voltage (V),Capacitance (μF),øD,L,Ripple current (mA rms),Impedance (Ω),Lead dia (ød),Straight,Taping ✽B,Part No.,Straight leads,Taping
+Rated voltage (V),Capacitance (μF),øD,L,Ripple current (mA rms) 125C 100kHz,Impedance (Ω) 20C 100kHz,Lead dia (ød),Straight,Taping ✽B,Part No.,Straight leads,Taping
 10,330,8.0,11.5,500,0.13,0.6,3.5,5.0,EEUTA1A331( ),200,1000
 10,470,10.0,12.5,680,0.1,0.6,5.0,5.0,EEUTA1A471( ),200,500
 10,1000,10.0,20.0,1100,0.057,0.6,5.0,5.0,EEUTA1A102( ),200,500

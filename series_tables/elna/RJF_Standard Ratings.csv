@@ -1,4 +1,4 @@
-Rated voltage (V),Rated capacitance (µF),Case φDxL (mm),Size code,Impedance (Ωmax.) 20℃,Impedance (Ωmax.) -10℃,Rated ripple current (mArms)
+Rated voltage (V),Rated capacitance (µF),Case φDxL (mm),Size code,Impedance (Ωmax.) 20℃ 100kHz,Impedance (Ωmax.) -10℃ 100kHz,Rated ripple current (mArms) 105C 100kHz
 6.3,18.0,,,,,
 6.3,27.0,,,,,
 6.3,33.0,,,,,

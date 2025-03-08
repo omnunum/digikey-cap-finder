@@ -1,4 +1,4 @@
-Rated Voltage,Capacitance,Size φD×L,Rated Ripple,Impedance 20℃,Impedance -10℃
+Rated Voltage,Capacitance,Size φD×L,Rated Ripple Current 105C @100kHz,Impedance 20℃ @100kHz,Impedance -10℃ @100kHz
 16,1000,10×16,1180,0.061,0.122
 16,1500,10×20,1490,0.045,0.09
 16,1800,10×25,1710,0.037,0.074

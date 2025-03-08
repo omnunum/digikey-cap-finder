@@ -1,4 +1,4 @@
-Rated Voltage (Vdc),Capacitance (μF),Size φD×L (mm),RatedRipple Current,ESR(Ω MAX) 20℃ 100kHz,ESR(Ω MAX) -40℃ 100kHz
+Rated Voltage (Vdc),Capacitance (μF),Size φD×L (mm),Rated Ripple Current 150C 100kHz,ESR(Ω MAX) 20℃ 100kHz,ESR(Ω MAX) -40℃ 100kHz
 25,1100,12.5×20,1150,0.07,1.0
 25,1600,12.5×25,1400,0.05,0.75
 25,1800,16×20,1520,0.045,0.6
