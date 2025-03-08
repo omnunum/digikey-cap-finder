@@ -760,9 +760,9 @@ def merge_ratings_with_frequency(ratings_df: pd.DataFrame, frequency_df: pd.Data
     # Base frequency calculation at 120Hz
     merged_df = calculate_esr_from_dissipation(merged_df, frequency=120.0, temperature=20)
     
-    # High frequency calculation at 100kHz (with automatic coefficient application)
+    # High frequency calculation at (with automatic coefficient application)
     merged_df = calculate_esr_from_dissipation(merged_df, frequency=100_000.0, temperature=20)
-    
+    merged_df = calculate_esr_from_dissipation(merged_df, frequency=10_000.0, temperature=20)
     return merged_df
 
 def process_series_tables_by_type(file_infos: List[FileInfo]) -> List[FileInfo]:
