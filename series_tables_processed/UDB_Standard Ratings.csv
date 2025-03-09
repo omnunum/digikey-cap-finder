@@ -1,12 +1,12 @@
-Voltage,Capacitance,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Status,Vibration resistant,Weight (g)
-50,1,8,11.5,-40,85,0.1,3,3000,UDB1H010MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,1.19
-50,1.5,8,11.5,-40,85,0.1,3,3000,UDB1H1R5MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,1.19
-50,2.2,10,12.5,-40,85,0.1,3,2000,UDB1H2R2MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,1.49
-50,3.3,10,16,-40,85,0.1,5,1800,UDB1H3R3MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,1.77
-50,4.7,10,20,-40,85,0.1,7,1400,UDB1H4R7MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,2.34
-50,6.8,12.5,20,-40,85,0.1,10,1000,UDB1H6R8MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,3.43
-50,10,12.5,25,-40,85,0.1,15,800,UDB1H100MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,4.56
-50,15,12.5,25,-40,85,0.1,23,800,UDB1H150MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,4.56
-50,22,16,25,-40,85,0.1,33,400,UDB1H220MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,8.2
-50,33,16,30.5,-40,85,0.1,50,300,UDB1H330MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,9.6
-50,47,18,35.5,-40,85,0.1,71,250,UDB1H470MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,14.2
+Voltage,Capacitance,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,ESR(est.) 20°C@120Hz,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Status,Vibration resistant,Weight (g)
+50,1,8,11.5,-40,85,0.1,132.629,3,3000,UDB1H010MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,1.19
+50,1.5,8,11.5,-40,85,0.1,88.419,3,3000,UDB1H1R5MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,1.19
+50,2.2,10,12.5,-40,85,0.1,60.286,3,2000,UDB1H2R2MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,1.49
+50,3.3,10,16,-40,85,0.1,40.191,5,1800,UDB1H3R3MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,1.77
+50,4.7,10,20,-40,85,0.1,28.219,7,1400,UDB1H4R7MPM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,2.34
+50,6.8,12.5,20,-40,85,0.1,19.504,10,1000,UDB1H6R8MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,3.43
+50,10,12.5,25,-40,85,0.1,13.263,15,800,UDB1H100MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,4.56
+50,15,12.5,25,-40,85,0.1,8.842,23,800,UDB1H150MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,4.56
+50,22,16,25,-40,85,0.1,6.029,33,400,UDB1H220MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,8.2
+50,33,16,30.5,-40,85,0.1,4.019,50,300,UDB1H330MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,9.6
+50,47,18,35.5,-40,85,0.1,2.822,71,250,UDB1H470MHM,Bi-Polar,Radial Lead,Bi-Polar For Speaker Network,LTB,Normal,14.2

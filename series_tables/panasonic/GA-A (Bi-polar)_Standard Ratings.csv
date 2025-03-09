@@ -1,4 +1,4 @@
-Rated voltage (V),Capacitance (±20 %) (μF),Case size (mm) øD,Case size (mm) L,Ripple current*1 (mA rms),tan δ*2,Lead dia. (ød),Lead space Straight,Lead space Taping ✽B,Lead space Taping ✽i,Part No.,Straight leads,Taping
+Rated voltage (V),Capacitance (±20 %) (μF),Case size (mm) øD,Case size (mm) L,Ripple current (mA rms) 105°C@120Hz,tan δ,Lead dia. (ød),Lead space Straight,Lead space Taping ✽B,Lead space Taping ✽i,Part No.,Straight leads,Taping
 6.3,100.0,6.3,11.2,130,0.3,0.5,2.5,5.0,2.5,ECA0JEN101( ),200,2000
 6.3,330.0,8.0,11.5,250,0.3,0.6,3.5,5.0,—,ECA0JEN331( ),200,1000
 10.0,47.0,5.0,11.0,90,0.24,0.5,2.0,5.0,2.5,ECA1AEN470( ),200,2000

@@ -51,43 +51,43 @@ def numeric_to_freq_str(numeric_value: int) -> str:
     else:
         return f"{numeric_value}Hz"
 
+ 
+def extract_temp(header: str) -> str:
+    """Extract temperature from header if present"""
+    temp_match = re.search(r'[\-]?\d+(?:℃|°C|C)', header)
+    if temp_match:
+        return (temp_match.group(0)
+                .replace('°C', '℃')
+                .replace('C', '℃')
+                .replace('℃', '°C')
+                .replace(' ', ''))
+    return ''
+
+def extract_frequency(header: str) -> str:
+    """Extract frequency from header if present"""
+    freq_match = re.search(r'(\d{1,})\s?(k|hz|khz)', header.lower())
+    if freq_match:
+        return f"{freq_match.group(1)}{'k' if 'k' in header else ''}Hz"
+    return ''
+
+def extract_temp_freq(header: str) -> str:
+    """Extract temperature and frequency from header if present"""
+    temp = extract_temp(header)
+    freq = extract_frequency(header)
+    if temp and freq:
+        return f"{temp}@{freq}"
+    elif temp:
+        return temp
+    elif freq:
+        return f"@{freq}"
+    return ''
+
 def map_header_to_standard_name(header: str) -> str:
     """
     Standardize a header using regex patterns.
     Returns the original header if no pattern matches.
     """
-    def extract_temp(header: str) -> str:
-        """Extract temperature from header if present"""
-        temp_match = re.search(r'[\-]?\d+(?:℃|°C|C)', header)
-        if temp_match:
-            return (temp_match.group(0)
-                    .replace('°C', '℃')
-                    .replace('C', '℃')
-                    .replace('℃', '°C')
-                    .replace(' ', ''))
-        return ''
-
-    def extract_frequency(header: str) -> str:
-        """Extract frequency from header if present"""
-        freq_match = re.search(r'\d{1,}\s?(hz|khz)', header.lower())
-        if freq_match:
-            return (freq_match.group(0)
-                .replace(' ', '')
-                .replace('khz', 'kHz')
-                .replace('hz', 'Hz'))
-        return ''
-
-    def extract_temp_freq(header: str) -> str:
-        """Extract temperature and frequency from header if present"""
-        temp = extract_temp(header)
-        freq = extract_frequency(header)
-        if temp and freq:
-            return f"{temp}@{freq}"
-        elif temp:
-            return temp
-        elif freq:
-            return f"@{freq}"
-        return ''
+   
     
     patterns = {
         # Basic electrical parameters
@@ -95,13 +95,14 @@ def map_header_to_standard_name(header: str) -> str:
         r".*?esr.*": lambda x: f"ESR {extract_temp_freq(x)}".strip(),
         r".*?esl.*": lambda x: f"ESL {extract_temp_freq(x)}".strip(),
         r".*?(?:impedance|^z$).*": lambda x: f"Impedance {extract_temp_freq(x)}".strip(),
-        r".*?max.*?ripple.*$": lambda x: f"Max Ripple Current {extract_temp_freq(x)}".strip(),
-        r".*?ripple.*|^rc$": lambda x: f"Ripple Current {extract_temp_freq(x)}".strip(),
+        r".*?max.*?ripple.*": lambda x: f"Max Ripple Current {extract_temp_freq(x)}".strip(),
+        r".*?ripple.*|^rc": lambda x: f"Ripple Current {extract_temp_freq(x)}".strip(),
         r".*?surge.*": "Surge Voltage",
         r".*?(?:voltage|vdc|wv).*": "Voltage",
         r".*?leak.*current.*|^lc$": "Leakage Current",
         r".*?(?:tan.*[δd]|^df$|dissipation.*factor).*": "Dissipation Factor",
         r".*?(?:coefficient).*": "Coefficient",
+        r"(cv|vc)\s*(\(µf\s*x\s*v\))?": "VC",
 
         # Other parameters
         r".*?endurance.*": lambda x: f"Endurance {extract_temp_freq(x)}".strip(),
@@ -114,7 +115,7 @@ def map_header_to_standard_name(header: str) -> str:
         # Physical parameters
         r".*?(?:size).*(?:code).*": "Size Code",
         # Combined dimension pattern - check this first
-        r".*?(?:case|size).*(?:[φøo]?d.*[×x].*l|[φøo]?d.*l|l.*[φøo]?d).*": "Case Size",
+        r".*?(?:case|size).*(?:[φøo]?d?.*[×x].*l|[φøo]?d.*l|l.*[φøo]?d).*": "Case Size",
         # Individual dimension patterns - check these after
         r".*?(?:size|diameter).*(?:[φøo]?d).*": "Case Size Diameter",
         r".*?(?:size|length|height).*(?:[φøo]?l).*": "Case Size Length",
@@ -127,13 +128,15 @@ def map_header_to_standard_name(header: str) -> str:
         r"^(?:[φøo]?l).*": "Case Size Length",
         r"^(?:[φøo]?d).*": "Case Size Diameter",\
         # Frequency pattern - matches standalone frequency values
-        r"^(?:\d+(?:\.\d+)?(?:\s*(?:hz|khz|Hz|kHz)))$": lambda x: f"Frequency Coefficient {extract_frequency(x)}".strip(),
-        r"^\d{2,3}$": lambda x: f"Frequency Coefficient {x}Hz".strip(),
+        r"(?:freq\.?|frequency coefficient)?\s*(?:\(?hz\)?)?\s*(\d{1,3})\s*(k|khz|k hz|hz)\s*(?:to)?": lambda x: f"Frequency Coefficient {extract_frequency(x.strip())}",
+        r"^≤?(?:\d+(?:\.\d+)?(?:\s*(?:hz|khz)))$": lambda x: f"Frequency Coefficient {extract_frequency(x.strip())}",
+        r"^\d{1,3}\s*k$": lambda x: f"Frequency Coefficient {extract_frequency(x.strip())}",
+        r"^\d{1,3}$": lambda x: f"Frequency Coefficient {x.strip()}Hz",
     }
     
     # Apply patterns to the header
     for pattern, replacement in patterns.items():
-        if not re.match(pattern, header, flags=re.IGNORECASE):
+        if not re.match(pattern, str(header), flags=re.IGNORECASE):
             continue
         if callable(replacement):
             return str(replacement(header))
@@ -244,9 +247,8 @@ def calculate_esr_from_dissipation(
     df = input_df.copy()
     # Find matching frequency coefficient column if it exists
     freq_str = f"{int(frequency)}Hz" if frequency < 1000 else f"{int(frequency/1000)}kHz"
-    coef_column_name = f"Frequency Coefficient {freq_str}"
-    required_columns = ['Dissipation Factor', 'Capacitance', 'Frequency Coefficient 120Hz', coef_column_name]
-    if not all(col in df.columns for col in required_columns):
+    # Check if all required columns are present
+    if not all(col in df.columns for col in ['Dissipation Factor', 'Capacitance']):
         return df
 
     def compute_esr_value(row):
@@ -259,22 +261,116 @@ def calculate_esr_from_dissipation(
         Automatically applies frequency coefficient if available.
         """
         if not (pd.notnull(row['Dissipation Factor']) and pd.notnull(row['Capacitance']) and row['Capacitance'] > 0):
-            return None
+            return np.nan
         # used to account for the fact that the tanδ is higher at higher capacitance values
         capacitance_factor_offset = ((row['Capacitance']  - 1000) // 1000 + 1) * 0.02
         esr = (row['Dissipation Factor'] + capacitance_factor_offset) / (2 * 3.14159 * 120 * row['Capacitance'] * 1e-6)
-        
-        # Apply frequency coefficient if available
-        if pd.notnull(row.get(coef_column_name)):
-            esr /= row[coef_column_name] ** 2
+
+        coef_column_name = f"Frequency Coefficient {freq_str}"
+        # Apply frequency coefficient if available.  The coefficient is squared because its a 
+        #  ripple freq coefficient, and we need convert it to a series impedance coefficient.
+        #  This is very lossy and janky but its directionally correct.
+        if frequency != 120.0:
+            if pd.notnull(row.get(coef_column_name)):
+                esr /= row[coef_column_name] ** 2
+            # We are trying to calculate ESR at a frequency that is not 120Hz, but there is no
+            #  frequency coefficient for that frequency.  Return None to indicate that we don't
+            #  have a valid ESR value for this row.
+            else:
+                return np.nan
             
         return round(esr, 3)
-    
+
+
     # Format temperature for column name
     temp_str = f"{temperature}°C"
     column_name = f"ESR(est.) {temp_str}@{freq_str}"
     
     df[column_name] = df.apply(compute_esr_value, axis=1)
+    
+    return df
+
+def calculate_ripple_current_at_frequencies(
+    input_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Calculate ripple current ratings at different frequencies using frequency coefficient data.
+    Coefficients are normalized with 120Hz = 1.0.
+    
+    Args:
+        input_df: DataFrame containing ripple current and frequency coefficient columns
+        source_col: The source ripple current column to convert from (auto-detected if None)
+        
+    Returns:
+        DataFrame with added ripple current columns for target frequencies
+    """
+    df = input_df.copy()
+    
+    def extract_frequency_columns(prefix: str) -> Dict[int, Dict[str, str]]:
+        """Extract frequency information from columns with the given prefix"""
+        result = {}
+        
+        for col in df.columns:
+            if not col.startswith(prefix):
+                continue
+            if (freq_hz := freq_to_numeric(extract_frequency(col))) is None:
+                continue
+            result[freq_hz] = col
+        
+        return result
+    
+    ripple_cols = [col for col in df.columns if col.startswith('Ripple Current')]
+    # Get the lowest temperature column
+    source_col = sorted(ripple_cols, key=lambda x: int(extract_temp(x).replace('°C', '') or 0))[0]
+    if not (source_freq_hz := freq_to_numeric(extract_frequency(source_col))):
+        return df # No Ripple Current data available
+    source_freq_str = numeric_to_freq_str(source_freq_hz)
+    source_coef_col = f"Frequency Coefficient {source_freq_str}"
+    
+    # Extract frequency coefficient and ripple current columns
+    if not (freq_coef_map := extract_frequency_columns('Frequency Coefficient')):
+        return df  # No frequency coefficient data available
+
+    # Exit if we couldn't find a valid source
+    if source_freq_hz not in freq_coef_map:
+        return df
+
+    
+    # Process each target frequency
+    for target_freq_hz, target_coef_col in freq_coef_map.items():
+        # Skip if target matches source
+        if target_freq_hz == source_freq_hz:
+            continue
+
+        # Create output column name
+        new_col_name = f"Ripple Current {extract_temp(source_col)}@{numeric_to_freq_str(target_freq_hz)}"
+        
+        # Skip if column already exists
+        if new_col_name in df.columns:
+            continue
+        
+        # Calculate new ripple current values
+        def calculate_ripple(row):
+            if pd.isna(row[source_col]) or pd.isna(row[target_coef_col]):
+                return np.nan
+            
+            source_value = int(row[source_col])
+            target_coef = float(row[target_coef_col])
+            
+            # If our source is 120Hz, we can directly apply the coefficient
+            if source_freq_hz == 120:
+                return round(source_value * target_coef, 2)
+            
+            # For any other source frequency, we need to use its coefficient to normalize
+            # back to 120Hz equivalent first, then apply target coefficient
+            if pd.isna(row.get(source_coef_col, None)) or row.get(source_coef_col, 0) == 0:
+                return np.nan
+                
+            source_coef = row[source_coef_col]
+            # Convert from source to 120Hz then to target
+            return round((source_value / source_coef) * target_coef, 2)
+        
+        df[new_col_name] = df.apply(calculate_ripple, axis=1)
     
     return df
 
@@ -392,10 +488,17 @@ def clean_and_convert_values(input_df: pd.DataFrame, cast_numeric_columns: bool 
                 logger.warning(f"No DxL matches found for Case Size in column {col}")
             df.drop(columns=[col], inplace=True)
             continue
-        elif (col in numerical_columns) or (str(col).startswith('Frequency Coefficient')):
+        if (col in numerical_columns) or (str(col).startswith('Frequency Coefficient')):
             df[col] = df[col].apply(extract_numerical_values_with_ranges)
             if cast_numeric_columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
+        if str(col).startswith('Ripple Current'):
+            df[col] = df[col].apply(extract_numerical_values_with_ranges)
+            if cast_numeric_columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+                if max(df[col]) < 10:
+                    # Rating is in A not mA
+                    df[col] *= 1000
         i += 1
     
     return df
@@ -483,10 +586,10 @@ def parse_and_standardize_file(input_path: str) -> Optional[FileInfo]:
         df = convert_frequency_table_to_standard_format(df)
         # Standard frequency values often used in datasheets
         standard_frequencies = ["50Hz", "60Hz", "120Hz", "300Hz", "1kHz", "10kHz", "100kHz"]
-        
+
         # Expand columns with ranges
         df = expand_range_columns(df, standard_frequencies, value_converter=freq_to_numeric)
-    
+
     df = df.rename(columns=lambda x: map_header_to_standard_name(x))
     logger.debug(f"After standardizing headers: {list(df.columns)}")
     
@@ -494,7 +597,6 @@ def parse_and_standardize_file(input_path: str) -> Optional[FileInfo]:
     df = make_column_names_unique(df)
     
     mapped_headers = list(df.columns)
-
     df = clean_and_convert_values(df)
     logger.debug(f"After standardizing values: {list(df.columns)}")
 
@@ -543,7 +645,7 @@ def expand_range_columns(
         col_str = str(col)
         
         # Case 1: "X to Y" pattern
-        range_patterns = r'\s+to\s+|\s*,\s*'
+        range_patterns = r'\s+to\s*|\s*,\s*|\s+•\s+'
         if re.search(range_patterns, col_str.lower()):
             range_parts = re.split(range_patterns, col_str.lower())
             # closed range
@@ -601,6 +703,8 @@ def resolve_value_ranges(
 ) -> pd.DataFrame:
     """
     Expand ranges in a column by matching with actual values from a reference dataframe.
+    Handles both closed ranges (e.g., "10-20") and open-ended ranges (e.g., "≥10", ">10").
+    Special values like empty strings or "all" match all available values.
     
     Args:
         source_df: DataFrame containing ranges to expand
@@ -626,30 +730,68 @@ def resolve_value_ranges(
     expanded_rows = []
     
     for _, row in source_df.iterrows():
-        # Skip if the value is not a string or is NaN
+        # Skip if the value is not a string and not NaN
         if not isinstance(row[column_name], str) and not pd.isna(row[column_name]):
             expanded_rows.append(row.to_dict())
             continue
             
-        # Skip if the value doesn't contain a range separator
-        separators = r'[~～\-/]|to'
-        if not re.search(separators, str(row[column_name])):
-            expanded_rows.append(row.to_dict())
-            continue
-        
-        # Extract range bounds
-        try:
-            start_str, end_str = re.split(separators, str(row[column_name]))
-            start_num = float(start_str.strip())
-            end_num = float(end_str.strip())
-        except (ValueError, TypeError):
-            # If we can't parse the range, keep the original row
-            logger.warning(f"Could not parse range '{row[column_name]}' in column '{column_name}'")
-            expanded_rows.append(row.to_dict())
-            continue
-
-        # Find matching values in the reference dataframe
-        matching_values = [v for v in available_values if start_num <= float(v) <= end_num]
+        # Handle NaN, empty string, or 'all' as special cases that match all values
+        if (pd.isna(row[column_name]) or 
+            isinstance(row[column_name], str) and 
+             (row[column_name].strip() == '' or 
+              row[column_name].lower().strip() == 'all')):
+            matching_values = available_values
+        else:
+            value_str = str(row[column_name])
+                
+            # Case 1: Check for closed range with separators
+            separators = r'[~～\-/]|to'
+            if re.search(separators, value_str):
+                try:
+                    start_str, end_str = re.split(separators, value_str)
+                    start_num = float(start_str.strip())
+                    end_num = float(end_str.strip())
+                    
+                    # Find matching values in the reference dataframe
+                    matching_values = [v for v in available_values if start_num <= float(v) <= end_num]
+                except (ValueError, TypeError):
+                    # If we can't parse the range, keep the original row
+                    logger.warning(f"Could not parse range '{value_str}' in column '{column_name}'")
+                    expanded_rows.append(row.to_dict())
+                    continue
+            
+            # Case 2: Check for open-ended range patterns (≥, >, ≤, <)
+            elif re.search(r'[≥>≤<]=?', value_str):
+                try:
+                    # Extract the operator and the value
+                    match = re.search(r'([≥>≤<]=?)\s*(\d+(?:\.\d+)?)', value_str)
+                    if not match:
+                        expanded_rows.append(row.to_dict())
+                        continue
+                        
+                    operator, value = match.groups()
+                    threshold = float(value.strip())
+                    
+                    # Find matching values based on the operator
+                    if operator in ['≥', '>=']:
+                        matching_values = [v for v in available_values if float(v) >= threshold]
+                    elif operator == '>':
+                        matching_values = [v for v in available_values if float(v) > threshold]
+                    elif operator in ['≤', '<=']:
+                        matching_values = [v for v in available_values if float(v) <= threshold]
+                    elif operator == '<':
+                        matching_values = [v for v in available_values if float(v) < threshold]
+                    else:
+                        matching_values = []
+                except (ValueError, TypeError):
+                    # If we can't parse the range, keep the original row
+                    logger.warning(f"Could not parse open-ended range '{value_str}' in column '{column_name}'")
+                    expanded_rows.append(row.to_dict())
+                    continue
+            else:
+                # Not a range, keep the original row
+                expanded_rows.append(row.to_dict())
+                continue
 
         if matching_values:
             # Create a new row for each matching value
@@ -755,14 +897,10 @@ def merge_ratings_with_frequency(ratings_df: pd.DataFrame, frequency_df: pd.Data
         on=cols_to_join if cols_to_join else None,
         how='left' if cols_to_join else 'cross'
     )
-     
-    # Calculate ESR at standard frequencies
-    # Base frequency calculation at 120Hz
-    merged_df = calculate_esr_from_dissipation(merged_df, frequency=120.0, temperature=20)
-    
+
     # High frequency calculation at (with automatic coefficient application)
-    merged_df = calculate_esr_from_dissipation(merged_df, frequency=100_000.0, temperature=20)
-    merged_df = calculate_esr_from_dissipation(merged_df, frequency=10_000.0, temperature=20)
+    merged_df = calculate_esr_from_dissipation(merged_df, frequency=100_000.0)
+    merged_df = calculate_esr_from_dissipation(merged_df, frequency=10_000.0)
     return merged_df
 
 def process_series_tables_by_type(file_infos: List[FileInfo]) -> List[FileInfo]:
@@ -783,15 +921,22 @@ def process_series_tables_by_type(file_infos: List[FileInfo]) -> List[FileInfo]:
                 dissipation_info = file_info
             elif file_info.file_type == TableType.FREQUENCY:
                 frequency_info = file_info
-        
+
         # Process files based on what we have
         if ratings_info:
             if dissipation_info and "Dissipation Factor" not in ratings_info.df.columns:
                 # We have both ratings and dissipation, and need to merge in dissipation data
                 ratings_info.df = merge_ratings_with_dissipation(ratings_info.df, dissipation_info.df)
+            if "Dissipation Factor" in ratings_info.df.columns:
+                # Calculate ESR at standard frequency
+                cleaned_df = clean_and_convert_values(ratings_info.df, cast_numeric_columns=True)
+                ratings_info.df = calculate_esr_from_dissipation(cleaned_df, frequency=120.0)
             if frequency_info:
+                if series_name.lower() == 'upw':
+                    pass
                 # Only ratings data, calculate ESR if dissipation factor is present
                 ratings_info.df = merge_ratings_with_frequency(ratings_info.df, frequency_info.df)
+                ratings_info.df = calculate_ripple_current_at_frequencies(ratings_info.df)
             if not dissipation_info and not frequency_info:
                 # Only ratings data, calculate ESR if dissipation factor is present
                 ratings_info.df = clean_and_convert_values(ratings_info.df, cast_numeric_columns=True)
@@ -810,7 +955,18 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
     files_saved = 0
     files_skipped = 0
     
-    priority_cols = ['Voltage', 'Capacitance', 'ESR 20°C@100kHz', 'ESR(est.) 20°C@10kHz', 'ESR(est.) 20°C@100kHz', 'Impedance 20°C@100kHz', 'Case Size Diameter', 'Case Size Length']
+    priority_cols = [
+        'Voltage'
+        , 'Capacitance'
+        , 'ESR(est.) 20°C@20Hz'
+        , 'ESR(est.) 20°C@10kHz'
+        , 'ESR(est.) 20°C@100kHz'
+        , 'ESR 20°C@100kHz'
+        , 'Impedance 20°C@100kHz'
+        , 'Case Size Diameter'
+        , 'Case Size Length'
+    ]
+
     all_series_data = []
     
     for file_info in file_infos:
@@ -835,13 +991,14 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
             df = df[available_priority_cols + other_cols]
             
             # Process numeric columns to remove trailing zeros
-            for col in available_priority_cols:
-                if col in df.columns:
-                    # Convert to string, replace trailing zeros, and convert NaN to empty string
-                    df[col] = df[col].astype(str).replace(r'\.0$', '', regex=True).replace('nan', '')
+            for col in df.columns:
+                # Convert to string, replace trailing zeros, and convert NaN to empty string
+                df[col] = df[col].astype(str).replace(r'\.0$', '', regex=True).replace('nan', '')
             df = df.fillna('')
-            
+
             # Save the individual file
+            drop_cols = [c for c in df.columns if 'Frequency Coefficient' in c]
+            df = df.drop(columns=drop_cols, errors='ignore')
             df.to_csv(file_output_path, index=False)
             files_saved += 1
             logger.debug(f"Saved {file_info.filename}")
@@ -852,14 +1009,50 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
             all_series_data.append(df)
     
     if all_series_data:
+        for df in all_series_data:
+            # we need to choose one column per frequency and then remove the temps from the name
+            ripple_cols = [c for c in df.columns if c.startswith('Ripple Current')]
+            sorted_by_temp = sorted(ripple_cols, key=lambda x: int(extract_temp(x).replace('°C', '') or 0))
+            col_name_maps = {}
+            cols_to_drop = []
+            for col in sorted_by_temp:
+                # lower temp comes first, higher temp will be dropped
+                new_col_name = f"Ripple Current @{extract_frequency(col)}"
+                if new_col_name in col_name_maps:
+                    cols_to_drop.append(col)
+                else:
+                    col_name_maps[new_col_name] = col
+            # invert the mapping to map the new column names to the old column names
+            df.rename(columns={v:k for k,v in col_name_maps.items()}, inplace=True)
+            df.drop(columns=cols_to_drop, errors='ignore', inplace=True)
+
         consolidated_df = pd.concat(all_series_data, ignore_index=True)
-        
+        # Create a summary of which series have non-null values for each column
+        series_with_data = {}
+        for column in consolidated_df.columns:
+            # Get series that have non-empty values in this column
+            series_with_values = consolidated_df[consolidated_df[column].astype(str).str.strip() != '']['Series'].unique()
+            if len(series_with_values) > 0:
+                series_with_data[column] = sorted(series_with_values)
+            
         # Create the merged ESR/Z column by coalescing ESR and Impedance
         consolidated_df['ESR/Z 20°C@100kHz'] = consolidated_df['ESR 20°C@100kHz'].combine_first(consolidated_df['Impedance 20°C@100kHz'])
         consolidated_df = consolidated_df.drop(columns=['ESR 20°C@100kHz', 'Impedance 20°C@100kHz'], errors='ignore')
         
+
+        
         # Define columns for consolidated output
-        output_cols = ['Series', 'Manufacturer', 'Voltage', 'Capacitance', 'ESR(est.) 20°C@10kHz', 'ESR (est.) 20°C@100kHz', 'ESR/Z 20°C@100kHz', 'Case Size Diameter', 'Case Size Length']
+        output_cols = [
+            'Series'
+            , 'Manufacturer'
+            , 'Capacitance'
+            , 'Voltage'
+            , 'ESR/Z 20°C@100kHz'
+            , *sorted([c for c in consolidated_df.columns if c.startswith('Ripple Current')], 
+                     key=lambda x: int(freq_to_numeric(extract_frequency(x)) or 0))
+            , 'Case Size Diameter'
+            , 'Case Size Length'
+            ]
         
         # Keep only columns that exist in the dataframe
         available_cols = [col for col in output_cols if col in consolidated_df.columns]
@@ -868,10 +1061,11 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
         # Ensure all NaN values are converted to empty strings
         consolidated_df = consolidated_df.fillna('')
         
+        # Save the original consolidated data
         consolidated_output_path = output_path / "all_series_priority_data.csv"
         consolidated_df.to_csv(consolidated_output_path, index=False)
         logger.info(f"Saved consolidated priority data to {consolidated_output_path}")
-    
+        
     logger.info(f"Saved {files_saved} files, skipped {files_skipped} files")
 
 def main():
@@ -903,7 +1097,7 @@ def main():
     save_processed_files(processed_file_infos, output_dir)
     
     # Step 5: Generate reports
-    # generate_all_reports(file_infos, output_dir, include_header_mapping=False)
+    generate_all_reports(file_infos, output_dir, include_header_mapping=False)
     
     print("Processing complete!")
 

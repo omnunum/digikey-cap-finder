@@ -1,4 +1,4 @@
-VDC,VDC Surge,Rated Capacitance,Case Size,DF,RC,Z,LC,Part Number
+VDC,VDC Surge,Rated Capacitance,Case Size,DF,RC 105°C@100kHz,Z 20°C@100kHz,LC,Part Number
 6.3,8,150,5 x 11,22,210,0.58,9.5,ETA157M6R3AC3(1)
 6.3,8,330,6.3 x 11,22,340,0.22,20.8,ETA337M6R3AE3(1)
 6.3,8,680,8 x 11,22,640,0.13,42.8,ETA687M6R3AG3(1)

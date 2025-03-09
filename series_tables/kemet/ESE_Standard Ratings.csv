@@ -1,4 +1,4 @@
-VDC,VDC Surge,Rated Capacitance,Case Size,DF,RC,LC,Part Number
+VDC,VDC Surge,Rated Capacitance,Case Size,DF,RC 105°C@120Hz,LC,Part Number
 6.3,8,47,5 x 11,26,60,3.0,ESE476M6R3AC3(1)
 6.3,8,68,5 x 11,26,75,4.3,ESE686M6R3AC3(1)
 6.3,8,100,5 x 11,26,100,6.3,ESE107M6R3AC3(1)

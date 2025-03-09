@@ -1,4 +1,4 @@
-Rated Voltage,Surge Voltage,Rated Capacitance,Case Size,DF,RC,Z,ESR 20℃@100kHz,LC,Part Number
+Rated Voltage,Surge Voltage,Rated Capacitance,Case Size,DF,RC 105°C@100kHz,Z 20°C@100kHz,ESR 25°C@100kHz,LC,Part Number
 6.3,8,"100.0",5 x 11,22,166,1.500,1.500,8.0,ESX107M6R3AC3(1)
 6.3,8,"100.0",8 x 11,22,180,0.610,0.610,8.0,ESX107M6R3AG3(1)
 6.3,8,"120.0",5 x 11,22,175,1.300,1.300,9.6,ESX127M6R3AC3(1)

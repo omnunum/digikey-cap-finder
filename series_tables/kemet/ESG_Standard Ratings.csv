@@ -1,4 +1,4 @@
-Rated Voltage,Surge Voltage,Rated Capacitance,Case Size,DF,RC,LC,Part Number
+Rated Voltage,Surge Voltage,Rated Capacitance,Case Size,DF,RC 105°C@120Hz,LC,Part Number
 160,200,22,10 x 20,15,160,222.0,ESG226M160AH4(1)
 160,200,33,10 x 20,15,210,327.0,ESG336M160AH4(1)
 160,200,47,13 x 20,15,260,461.0,ESG476M160AL3(1)

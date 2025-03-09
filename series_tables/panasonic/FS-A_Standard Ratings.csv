@@ -1,4 +1,4 @@
-Rated voltage (V),Capacitance (μF),Case size øD,Case size L,Ripple current (mA rms),Impedance (Ω),Endurance (h),Lead dia (ød),Lead space Straight,Lead space Taping ✽B,Part No.,Straight leads,Taping
+Rated voltage (V),Capacitance (μF),Case size øD,Case size L,Ripple current (mA rms) 105°C@100kHz,Impedance (Ω) 100kHz,Endurance (h),Lead dia (ød),Lead space Straight,Lead space Taping ✽B,Part No.,Straight leads,Taping
 80,47,8.0,11.5,490,0.16,6000,0.6,3.5,5.0,EEUFS1K470( ),200,1000
 80,56,8.0,11.5,490,0.16,6000,0.6,3.5,5.0,EEUFS1K560( ),200,1000
 80,68,8.0,15.0,590,0.112,8000,0.6,3.5,5.0,EEUFS1K680( ),200,1000

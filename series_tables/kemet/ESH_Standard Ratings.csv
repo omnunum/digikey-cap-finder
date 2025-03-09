@@ -1,4 +1,4 @@
-Rated Voltage,Surge Voltage,Rated Capacitance,Case Size,DF,RC,LC,Part Number
+Rated Voltage,Surge Voltage,Rated Capacitance,Case Size,DF,RC 105°C@120Hz,LC,Part Number
 6.3,8,100.0,5 x 11,26,100,6.3,ESH107M6R3AC3(1)
 6.3,8,150.0,5 x 11,26,120,9.5,ESH157M6R3AC3(1)
 6.3,8,220.0,6.3 x 11,26,165,13.9,ESH227M6R3AE3(1)

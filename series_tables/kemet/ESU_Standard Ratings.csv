@@ -1,4 +1,4 @@
-Rated Voltage,Surge Voltage,Rated Capacitance,Case Size,DF,RC,LC,Part Number
+Rated Voltage,Surge Voltage,Rated Capacitance,Case Size,DF,RC 105°C@100Hz,LC,Part Number
 160,200,33.0,10 x 16,15,500,311.2,ESU336M160AH8(1)
 160,200,47.0,10 x 20,15,580,400.8,ESU476M160AH4(1)
 160,200,68.0,13 x 20,15,720,535.2,ESU686M160AL3(1)

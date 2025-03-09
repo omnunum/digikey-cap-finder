@@ -1,4 +1,4 @@
-Rated voltage (V),Capacitance (μF),Case size øD (mm),Case size L (mm),Ripple current (mA rms),tan δ,Endurance (h),Lead dia. (ød),Lead space Straight,Lead space Taping ✽B,Part No.,Straight leads,Taping
+Rated voltage (V),Capacitance (μF),Case size øD (mm),Case size L (mm),Ripple current (mA rms) 105°C@100kHz,tan δ,Endurance (h),Lead dia. (ød),Lead space Straight,Lead space Taping ✽B,Part No.,Straight leads,Taping
 160,22,10.0,20.0,500,0.15,8000,0.6,5.0,5.0,EEUED2C220( ),200,500
 160,33,10.0,20.0,580,0.15,8000,0.6,5.0,5.0,EEUED2C330( ),200,500
 160,47,10.0,20.0,750,0.15,8000,0.6,5.0,5.0,EEUED2C470( ),200,500

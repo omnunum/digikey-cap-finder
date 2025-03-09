@@ -1,4 +1,4 @@
-Rated voltage (V),Capacitance (±20%) (μF),Case size øD (mm),Case size L (mm),Ripple current (mA rms),tan δ,Endurance (h),Lead dia. (ød),Lead space Straight,Lead space Taping ✽B,Lead space Taping ✽H,Part No.,Min. Packaging Q'ty Straight leads,Min. Packaging Q'ty Taping
+Rated voltage (V),Capacitance (±20%) (μF),Case size øD (mm),Case size L (mm),Ripple current (mA rms) 105°C@120Hz,tan δ,Endurance (h),Lead dia. (ød),Lead space Straight,Lead space Taping ✽B,Lead space Taping ✽H,Part No.,Min. Packaging Q'ty Straight leads,Min. Packaging Q'ty Taping
 10,22.0,4.0,7.0,30,0.22,1000,0.45,1.5,5.0,2.5,EEAGA1A220( ),200,2000
 10,33.0,5.0,7.0,50,0.22,1000,0.45,2.0,5.0,2.5,EEAGA1A330( ),200,2000
 10,47.0,6.3,7.0,65,0.22,1000,0.45,2.5,5.0,2.5,EEAGA1A470( ),200,2000
