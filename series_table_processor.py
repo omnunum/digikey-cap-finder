@@ -1007,65 +1007,64 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
             df['Manufacturer'] = file_info.manufacturer
             all_series_data.append(df)
     
-    if all_series_data:
-        for df in all_series_data:
-            # we need to choose one column per frequency and then remove the temps from the name
-            ripple_cols = [c for c in df.columns if c.startswith('Ripple Current')]
-            sorted_by_temp = sorted(ripple_cols, key=lambda x: int(extract_temp(x).replace('°C', '') or 0))
-            col_name_maps = {}
-            cols_to_drop = []
-            for col in sorted_by_temp:
-                # lower temp comes first, higher temp will be dropped
-                new_col_name = f"Ripple Current @{extract_frequency(col)}"
-                if new_col_name in col_name_maps:
-                    cols_to_drop.append(col)
-                else:
-                    col_name_maps[new_col_name] = col
-            # invert the mapping to map the new column names to the old column names
-            df.rename(columns={v:k for k,v in col_name_maps.items()}, inplace=True)
-            df.drop(columns=cols_to_drop, errors='ignore', inplace=True)
+    for df in all_series_data:
+        # we need to choose one column per frequency and then remove the temps from the name
+        ripple_cols = [c for c in df.columns if c.startswith('Ripple Current')]
+        sorted_by_temp = sorted(ripple_cols, key=lambda x: int(extract_temp(x).replace('°C', '') or 0))
+        col_name_maps = {}
+        cols_to_drop = []
+        for col in sorted_by_temp:
+            # lower temp comes first, higher temp will be dropped
+            new_col_name = f"Ripple Current @{extract_frequency(col)}"
+            if new_col_name in col_name_maps:
+                cols_to_drop.append(col)
+            else:
+                col_name_maps[new_col_name] = col
+        # invert the mapping to map the new column names to the old column names
+        df.rename(columns={v:k for k,v in col_name_maps.items()}, inplace=True)
+        df.drop(columns=cols_to_drop, errors='ignore', inplace=True)
 
-        consolidated_df = pd.concat(all_series_data, ignore_index=True)
-        # Create a summary of which series have non-null values for each column
-        series_with_data = {}
-        for column in consolidated_df.columns:
-            # Get series that have non-empty values in this column
-            series_with_values = consolidated_df[consolidated_df[column].astype(str).str.strip() != '']['Series'].unique()
-            if len(series_with_values) > 0:
-                series_with_data[column] = sorted(series_with_values)
-            
-        # Create the merged ESR/Z column by coalescing ESR and Impedance
-        consolidated_df['ESR/Z 20°C@100kHz'] = consolidated_df['ESR 20°C@100kHz'].combine_first(consolidated_df['Impedance 20°C@100kHz'])
-        consolidated_df = consolidated_df.drop(columns=['ESR 20°C@100kHz', 'Impedance 20°C@100kHz'], errors='ignore')
+    consolidated_df = pd.concat(all_series_data, ignore_index=True)
+    # Create a summary of which series have non-null values for each column
+    series_with_data = {}
+    for column in consolidated_df.columns:
+        # Get series that have non-empty values in this column
+        series_with_values = consolidated_df[consolidated_df[column].astype(str).str.strip() != '']['Series'].unique()
+        if len(series_with_values) > 0:
+            series_with_data[column] = sorted(series_with_values)
         
+    # Create the merged ESR/Z column by coalescing ESR and Impedance
+    consolidated_df['ESR/Z 20°C@100kHz'] = consolidated_df['ESR 20°C@100kHz'].combine_first(consolidated_df['Impedance 20°C@100kHz'])
+    consolidated_df = consolidated_df.drop(columns=['ESR 20°C@100kHz', 'Impedance 20°C@100kHz'], errors='ignore')
+    
 
-        
-        # Define columns for consolidated output
-        output_cols = [
-            'Series'
-            , 'Manufacturer'
-            , 'Capacitance'
-            , 'Voltage'
-            , 'ESR/Z 20°C@100kHz'
-            , 'Ripple Current @120Hz'
-            , 'Ripple Current @1kHz'
-            , 'Ripple Current @10kHz'
-            ,'Ripple Current @100kHz'
-            , 'Case Size Diameter'
-            , 'Case Size Length'
-            ]
-        
-        # Keep only columns that exist in the dataframe
-        available_cols = [col for col in output_cols if col in consolidated_df.columns]
-        consolidated_df = consolidated_df[available_cols]
-        
-        # Ensure all NaN values are converted to empty strings
-        consolidated_df = consolidated_df.fillna('')
-        
-        # Save the original consolidated data
-        consolidated_output_path = output_path / "all_series_priority_data.csv"
-        consolidated_df.to_csv(consolidated_output_path, index=False)
-        logger.info(f"Saved consolidated priority data to {consolidated_output_path}")
+    
+    # Define columns for consolidated output
+    output_cols = [
+        'Series'
+        , 'Manufacturer'
+        , 'Capacitance'
+        , 'Voltage'
+        , 'ESR/Z 20°C@100kHz'
+        , 'Ripple Current @120Hz'
+        , 'Ripple Current @1kHz'
+        , 'Ripple Current @10kHz'
+        ,'Ripple Current @100kHz'
+        , 'Case Size Diameter'
+        , 'Case Size Length'
+        ]
+    
+    # Keep only columns that exist in the dataframe
+    available_cols = [col for col in output_cols if col in consolidated_df.columns]
+    consolidated_df = consolidated_df[available_cols]
+    
+    # Ensure all NaN values are converted to empty strings
+    consolidated_df = consolidated_df.fillna('')
+    
+    # Save the original consolidated data
+    consolidated_output_path = output_path / "all_series_priority_data.csv"
+    consolidated_df.to_csv(consolidated_output_path, index=False)
+    logger.info(f"Saved consolidated priority data to {consolidated_output_path}")
         
     logger.info(f"Saved {files_saved} files, skipped {files_skipped} files")
 
