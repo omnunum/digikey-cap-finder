@@ -4,6 +4,8 @@ import pandas as pd
 import math
 from dataclasses import dataclass
 from jinja2 import Environment, FileSystemLoader
+from typing import Optional
+from urllib.parse import urlparse
 
 from helpers import (
     get_parameter_value,
@@ -35,15 +37,63 @@ class Config:
     weight_price: float
     weight_lifetime: float
     weight_diameter_penalty: float
-    weight_voltage: float          # new weight for voltage bonus
+    weight_voltage: float
     
     allow_merge_with_higher_voltage: bool
     opportunistic_voltage_search: bool
     
     cache_dir: str
-    csv_input: str
+    input_source: str  # CSV file path or Google Sheets URL
     csv_output: str
     html_output: str
+
+def read_input_data(input_source: str) -> pd.DataFrame:
+    """
+    Read data from either a CSV file or a Google Sheet URL.
+    """
+    try:
+        if input_source.startswith(('http://', 'https://')) and 'docs.google.com/spreadsheets' in input_source:
+            # Extract sheet ID from Google Sheets URL
+            sheet_id = urlparse(input_source).path.split('/')[-2]
+            # Use the export URL to get CSV directly
+            sheet_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+            df = pd.read_csv(sheet_url)
+            print(f"Successfully read data from Google Sheet")
+        else:
+            # Local file or direct CSV URL
+            df = pd.read_csv(input_source)
+            print(f"Successfully read data from {input_source}")
+    except Exception as e:
+        raise ValueError(f"Error reading input data: {e}")
+    
+    # Rename columns to match expected format
+    column_mapping = {
+        'Label': 'label',
+        'Reference': 'label',
+        'Capacitance µF': 'capacitance',
+        'Voltage V': 'voltage',
+        'Size mm': 'diameter',
+        'Series': 'series'
+    }
+    
+    df = df.rename(columns={k: v for k, v in column_mapping.items() if k in df.columns})
+    
+    # Add tight_fit column if it doesn't exist
+    if 'tight_fit' not in df.columns:
+        df['tight_fit'] = True
+    
+    # Convert data types
+    df['capacitance'] = pd.to_numeric(df['capacitance'], errors='coerce')
+    df['voltage'] = pd.to_numeric(df['voltage'], errors='coerce')
+    df['diameter'] = pd.to_numeric(df['diameter'], errors='coerce')
+    
+    # Drop rows with missing required values
+    df = df.dropna(subset=['capacitance', 'voltage', 'diameter'])
+    
+    if df.empty:
+        raise ValueError("No valid data in input source after filtering")
+    
+    return df
 
 def compute_composite_scores(products, config, source_diameter, quantity=1, tight_fit=True):
     """
@@ -281,52 +331,31 @@ def deduplicate_specs_data(specs_data):
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     
-    @dataclass
-    class LocalConfig:
-        client_id: str
-        client_secret: str
-        token_url: str
-        search_url: str
-        temperature_rating: str
-        min_quantity: int
-        limit: int
-        lifetime_temp_threshold: float
-        weight_ripple: float
-        weight_price: float
-        weight_lifetime: float
-        weight_diameter_penalty: float
-        weight_voltage: float
-        allow_merge_with_higher_voltage: bool
-        opportunistic_voltage_search: bool
-        cache_dir: str
-        csv_input: str
-        csv_output: str
-        html_output: str
-    
-    config = LocalConfig(
+    config = Config(
         client_id=os.getenv("DIGIKEY_CLIENT_ID"),
         client_secret=os.getenv("DIGIKEY_CLIENT_SECRET"),
         token_url='https://api.digikey.com/v1/oauth2/token',
         search_url='https://api.digikey.com/products/v4/search/keyword',
-        temperature_rating="105°C",
+        temperature_rating="85°C",
         min_quantity=5,
         limit=50,
         lifetime_temp_threshold=85.0,
         weight_ripple=3.0,
         weight_price=1.0,
-        weight_lifetime=2.0,
+        weight_lifetime=1.0,
         weight_diameter_penalty=2.0,
         weight_voltage=2.0,
         allow_merge_with_higher_voltage=False,
         opportunistic_voltage_search=True,
         cache_dir=os.path.join(script_dir, "cache"),
-        csv_input=os.path.join(script_dir, "cap_list.csv"),
+        input_source="https://docs.google.com/spreadsheets/d/17cPtcG3J5juaralesjxz_KZUVDKJV5dGURIf7dJdRtU/edit?usp=sharing",
         csv_output=os.path.join(script_dir, "digikey_best_caps_final.csv"),
         html_output=os.path.join(script_dir, "digikey_best_caps_final.html")
     )
     
-    # Read CSV (columns: label, capacitance, voltage, diameter, tight_fit)
-    cap_df = pd.read_csv(config.csv_input)
+    cap_df = read_input_data(config.input_source)
+
+    # Continue with the existing processing
     grouped = cap_df.groupby(["capacitance", "voltage", "diameter", "tight_fit"]).agg(
         Labels=('label', lambda x: ";".join(sorted(set(x)))),
         Quantity=('label', 'size')

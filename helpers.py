@@ -16,7 +16,7 @@ def build_search_payload(capacitance, config, voltage=None):
     Otherwise, it includes capacitance, voltage, and temperature rating.
     """
     keywords = (
-        f"{round_up_to_sigfig(capacitance, 1)}µF {config.temperature_rating}" 
+        f"{str(round_up_to_sigfig(capacitance, 1 if capacitance > 1 else 2)).replace('.0', '')}µF" 
         + (f" {round_up_to_sigfig(voltage, 1)}V" if voltage else "")
     )
    
@@ -24,15 +24,16 @@ def build_search_payload(capacitance, config, voltage=None):
         "Keywords": keywords,
         "Limit": config.limit,
         "Offset": 0,
-        "MinimumQuantityAvailable": config.min_quantity,
         "FilterOptionsRequest": {
+            "CategoryFilter": [{"Id": "3"}],
             "ParameterFilterRequest": {
                 "CategoryFilter": {"Id": "58"},
                 "ParameterFilters": [
-                    {"ParameterId": 16, "FilterValues": [{"Id": "392320"}]}
+                    {"ParameterId": 69, "FilterValues": [{"Id": "411897"}]}
                 ]
             },
-            "ManufacturerFilter": [{"Id": mid} for mid in ["565", "399", "493", "1189", "732"]]
+            "ManufacturerFilter": [{"Id": mid} for mid in ["10", "338", "565", "399", "493", "1189"]],
+            "MinimumQuantityAvailable": config.min_quantity,
         },
         "SortOptions": {
             "Field": "2260",
@@ -75,7 +76,7 @@ def make_cached_request(url, payload, headers, cache_dir, response_type='json', 
             return f.read()
     
     print(f"No cache found for hash {cache_hash}, requesting from API...")
-    resp = requests.post(url, headers=headers, data=payload, params=params)
+    resp = requests.post(url, headers=headers, json=payload, params=params)
     resp.raise_for_status()
     
     with open(cache_file_path, "w", encoding="utf-8") as f:
