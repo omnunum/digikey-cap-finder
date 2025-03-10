@@ -1,4 +1,5 @@
 import os
+import math
 from pathlib import Path
 from collections import defaultdict, Counter
 from typing import Dict, List, Tuple, Union, Callable, Optional, Any
@@ -402,7 +403,7 @@ def extract_numerical_values_with_ranges(value: str) -> Union[str, Any]:
     
     # Check if this is a range with a separator (-, ~, ～, to)
     # Use regex to split by any range separator
-    range_separator_pattern = r'[-~～]|\s+to\s+'
+    range_separator_pattern = r'[-~～]|\s+to\s*'
     if re.search(range_separator_pattern, value):
         parts = re.split(range_separator_pattern, value)
         
@@ -415,20 +416,16 @@ def extract_numerical_values_with_ranges(value: str) -> Union[str, Any]:
             else:
                 numeric_parts.append('')
                 
-        # Reconstruct with the found separator
-        if all(numeric_parts):
-            # Get the actual separator used
-            separator_match = re.search(range_separator_pattern, value)
-            if separator_match:
-                separator = separator_match.group(0)
-                return separator.join(numeric_parts)
-            else:
-                # Fallback to hyphen if we can't determine the separator (shouldn't happen)
-                return '-'.join(numeric_parts)
-    
-    # Default case: just extract the first number
-    num_match = re.search(r'(\d+(?:\.\d+)?)', value)
-    return num_match.group(1) if num_match else value
+
+        # Get the actual separator used
+        separator_match = re.search(range_separator_pattern, value)
+        if separator_match:
+            separator = separator_match.group(0)
+            return separator.join(numeric_parts)
+        else:
+            # Fallback to hyphen if we can't determine the separator (shouldn't happen)
+            return ' to '.join(numeric_parts)
+    return value
 
 def clean_and_convert_values(input_df: pd.DataFrame, cast_numeric_columns: bool = False) -> pd.DataFrame:
     """
@@ -597,6 +594,8 @@ def parse_and_standardize_file(input_path: str) -> Optional[FileInfo]:
     df = make_column_names_unique(df)
     
     mapped_headers = list(df.columns)
+    if series_name.lower() == 'ky':
+        pass
     df = clean_and_convert_values(df)
     logger.debug(f"After standardizing values: {list(df.columns)}")
 
@@ -749,8 +748,8 @@ def resolve_value_ranges(
             if re.search(separators, value_str):
                 try:
                     start_str, end_str = re.split(separators, value_str)
-                    start_num = float(start_str.strip())
-                    end_num = float(end_str.strip())
+                    start_num = float(start_str.strip()) if start_str.strip() else 0
+                    end_num = float(end_str.strip()) if end_str.strip() else math.inf
                     
                     # Find matching values in the reference dataframe
                     matching_values = [v for v in available_values if start_num <= float(v) <= end_num]
@@ -932,7 +931,7 @@ def process_series_tables_by_type(file_infos: List[FileInfo]) -> List[FileInfo]:
                 cleaned_df = clean_and_convert_values(ratings_info.df, cast_numeric_columns=True)
                 ratings_info.df = calculate_esr_from_dissipation(cleaned_df, frequency=120.0)
             if frequency_info:
-                if series_name.lower() == 'upw':
+                if series_name.lower() == 'ky':
                     pass
                 # Only ratings data, calculate ESR if dissipation factor is present
                 ratings_info.df = merge_ratings_with_frequency(ratings_info.df, frequency_info.df)
@@ -1048,8 +1047,10 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
             , 'Capacitance'
             , 'Voltage'
             , 'ESR/Z 20°C@100kHz'
-            , *sorted([c for c in consolidated_df.columns if c.startswith('Ripple Current')], 
-                     key=lambda x: int(freq_to_numeric(extract_frequency(x)) or 0))
+            , 'Ripple Current @120Hz'
+            , 'Ripple Current @1kHz'
+            , 'Ripple Current @10kHz'
+            ,'Ripple Current @100kHz'
             , 'Case Size Diameter'
             , 'Case Size Length'
             ]
