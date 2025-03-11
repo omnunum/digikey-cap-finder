@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_squared_error, r2_score
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any, Tuple, cast
 
 
 @dataclass
@@ -28,12 +28,17 @@ class CapacitorFeatures:
 class CapacitorESRModel:
     """Model for predicting ESR values at 100kHz based on capacitor physical characteristics."""
     
-    def __init__(self):
+    def __init__(self, include_dissipation_factor: bool = True):
         self.model = None
-        self.feature_columns: List[str] = [
-            'Capacitance', 'Voltage', 'Dissipation Factor', 
-            'Volume', 'Diameter', 'Length'
-        ]
+        self.include_dissipation_factor = include_dissipation_factor
+        
+        # Initialize the feature columns list
+        self.feature_columns: List[str] = ['Capacitance', 'Voltage', 'Volume', 'Diameter', 'Length']
+        
+        # Add dissipation factor if needed
+        if include_dissipation_factor:
+            self.feature_columns.insert(2, 'Dissipation Factor')
+            
         self.target_column: str = 'ESR_100kHz'
     
     def load_data(self, csv_path: str) -> pd.DataFrame:
@@ -178,16 +183,25 @@ class CapacitorESRModel:
         """Predict ESR at 100kHz using the trained model."""
         if self.model is None:
             raise ValueError("Model has not been trained. Call train() first.")
-            
-        features = np.array([[
-            capacitor.capacitance,
-            capacitor.voltage,
-            capacitor.dissipation_factor,
-            capacitor.volume,
-            capacitor.diameter,
-            capacitor.length
-        ]])
         
+        if self.include_dissipation_factor:
+            features = np.array([[
+                capacitor.capacitance,
+                capacitor.voltage,
+                capacitor.dissipation_factor,
+                capacitor.volume,
+                capacitor.diameter,
+                capacitor.length
+            ]])
+        else:
+            features = np.array([[
+                capacitor.capacitance,
+                capacitor.voltage,
+                capacitor.volume,
+                capacitor.diameter,
+                capacitor.length
+            ]])
+            
         prediction = float(self.model.predict(features)[0])
         
         # Ensure the prediction is positive
@@ -217,7 +231,9 @@ def extract_capacitor_features(row: pd.Series) -> CapacitorFeatures:
     )
 
 
-def generate_comparison_chart(predictions: List[float], actuals: List[float], series_names: List[str]) -> None:
+def generate_comparison_chart(predictions: List[float], actuals: List[float], series_names: List[str], 
+                             title: str = 'Predicted vs Actual 100kHz ESR Values',
+                             filename: str = 'esr_prediction_comparison.png') -> None:
     """Generate a chart comparing predicted vs actual ESR values at 100kHz."""
     import matplotlib.pyplot as plt
     
@@ -235,7 +251,7 @@ def generate_comparison_chart(predictions: List[float], actuals: List[float], se
     # Add labels and title
     plt.xlabel('Actual ESR (Ω)')
     plt.ylabel('Predicted ESR (Ω)')
-    plt.title('Predicted vs Actual 100kHz ESR Values')
+    plt.title(title)
     plt.grid(True)
     
     # Only add annotations if there are a reasonable number of points
@@ -264,80 +280,112 @@ def generate_comparison_chart(predictions: List[float], actuals: List[float], se
     
     plt.legend()
     plt.tight_layout()
-    plt.savefig('esr_prediction_comparison.png')
-    print("Comparison chart saved as 'esr_prediction_comparison.png'")
+    plt.savefig(filename)
+    print(f"Comparison chart saved as '{filename}'")
+
+
+def generate_model_comparison(csv_path: str):
+    """Compare models with and without dissipation factor."""
+    print("\n" + "="*50)
+    print("MODEL WITH DISSIPATION FACTOR")
+    print("="*50)
+    
+    # Train model with dissipation factor
+    model_with_df = CapacitorESRModel(include_dissipation_factor=True)
+    metrics_with_df = model_with_df.train(csv_path)
+    
+    print("\n" + "="*50)
+    print("MODEL WITHOUT DISSIPATION FACTOR")
+    print("="*50)
+    
+    # Train model without dissipation factor
+    model_without_df = CapacitorESRModel(include_dissipation_factor=False)
+    metrics_without_df = model_without_df.train(csv_path)
+    
+    # Load data for comparison
+    df = model_with_df.load_data(csv_path)
+    valid_samples = df.dropna(subset=['ESR_100kHz'])
+    
+    if not valid_samples.empty:
+        # Generate predictions for both models
+        predictions_with_df: List[float] = []
+        predictions_without_df: List[float] = []
+        actuals: List[float] = []
+        series_names: List[str] = []
+        
+        # Only use rows with valid ESR values for comparison
+        for _, row in valid_samples.iterrows():
+            # Skip rows with missing ESR values
+            if pd.isnull(row['ESR_100kHz']):
+                continue
+                
+            capacitor = extract_capacitor_features(row)
+            actual_esr = float(row['ESR_100kHz'])  # Already verified it's not null
+            
+            pred_with_df = model_with_df.predict_esr_100khz(capacitor)
+            pred_without_df = model_without_df.predict_esr_100khz(capacitor)
+            
+            predictions_with_df.append(pred_with_df)
+            predictions_without_df.append(pred_without_df)
+            actuals.append(actual_esr)
+            series_names.append(str(row['Series']) if pd.notnull(row['Series']) else 'Unknown')
+        
+        # Calculate comparison statistics
+        errors_with_df = [abs(p - a) for p, a in zip(predictions_with_df, actuals)]
+        errors_without_df = [abs(p - a) for p, a in zip(predictions_without_df, actuals)]
+        
+        avg_error_with_df = sum(errors_with_df) / len(errors_with_df) if errors_with_df else 0
+        avg_error_without_df = sum(errors_without_df) / len(errors_without_df) if errors_without_df else 0
+        
+        pct_errors_with_df = [100 * err / act if act > 0 else float('nan') for err, act in zip(errors_with_df, actuals)]
+        pct_errors_without_df = [100 * err / act if act > 0 else float('nan') for err, act in zip(errors_without_df, actuals)]
+        
+        avg_pct_error_with_df = np.nanmean(pct_errors_with_df)
+        avg_pct_error_without_df = np.nanmean(pct_errors_without_df)
+        
+        # Print comparison
+        print("\n" + "="*50)
+        print("MODEL COMPARISON SUMMARY")
+        print("="*50)
+        print(f"                                WITH DF             WITHOUT DF")
+        print(f"R² score:                      {metrics_with_df['r2']:.4f}             {metrics_without_df['r2']:.4f}")
+        print(f"RMSE:                          {metrics_with_df['rmse']:.4f}             {metrics_without_df['rmse']:.4f}")
+        print(f"Average absolute error:        {avg_error_with_df:.4f}Ω            {avg_error_without_df:.4f}Ω")
+        print(f"Average percentage error:      {avg_pct_error_with_df:.1f}%              {avg_pct_error_without_df:.1f}%")
+        print(f"Performance difference:        {(metrics_with_df['r2'] - metrics_without_df['r2'])*100:.2f}% better R² with dissipation factor")
+        
+        # Generate visualizations for both models
+        try:
+            generate_comparison_chart(
+                predictions_with_df, actuals, series_names,
+                title='Predicted vs Actual 100kHz ESR Values (With Dissipation Factor)',
+                filename='esr_prediction_with_df.png'
+            )
+            
+            generate_comparison_chart(
+                predictions_without_df, actuals, series_names,
+                title='Predicted vs Actual 100kHz ESR Values (Without Dissipation Factor)',
+                filename='esr_prediction_without_df.png'
+            )
+        except ImportError:
+            print("\nMatplotlib not available - skipping chart generation")
+        
+        return {
+            'with_df': metrics_with_df,
+            'without_df': metrics_without_df,
+            'avg_error_with_df': avg_error_with_df,
+            'avg_error_without_df': avg_error_without_df,
+            'avg_pct_error_with_df': avg_pct_error_with_df,
+            'avg_pct_error_without_df': avg_pct_error_without_df,
+        }
 
 
 def main():
     """Train model and demonstrate ESR prediction."""
     csv_path = 'all_series_priority_data.csv'
     
-    model = CapacitorESRModel()
-    metrics = model.train(csv_path)
-    
-    print(f"\nBest model: {metrics['model_name']}")
-    print(f"R² score: {metrics['r2']:.4f}")
-    print(f"RMSE: {metrics['rmse']:.4f}")
-    
-    # Load data again for demonstration
-    df = model.load_data(csv_path)
-    valid_samples = df.dropna(subset=['ESR_100kHz'])
-    
-    if not valid_samples.empty:
-        # For table display, limit to a few samples
-        display_count = min(5, len(valid_samples))
-        display_samples = valid_samples.sample(display_count) if len(valid_samples) > display_count else valid_samples
-        
-        # For visualization, use all valid samples
-        all_predictions = []
-        all_actuals = []
-        all_series = []
-        
-        # First generate all predictions (for both table and visualization)
-        for _, row in valid_samples.iterrows():
-            capacitor = extract_capacitor_features(row)
-            predicted_esr = model.predict_esr_100khz(capacitor)
-            
-            all_predictions.append(predicted_esr)
-            all_actuals.append(capacitor.esr_100khz)
-            all_series.append(str(capacitor.series))
-        
-        # Print table with a limited number of samples
-        print("\n100kHz ESR Predictions (Sample):")
-        print("-" * 50)
-        print(f"{'Series':<10} {'Cap (μF)':<10} {'Voltage (V)':<12} {'Dims (mm)':<15} {'Predicted (Ω)':<15} {'Actual (Ω)':<15} {'Error (%)':<10}")
-        print("-" * 50)
-        
-        for i, (_, row) in enumerate(display_samples.iterrows()):
-            capacitor = extract_capacitor_features(row)
-            predicted_esr = model.predict_esr_100khz(capacitor)
-            
-            dims = f"{capacitor.diameter}×{capacitor.length}"
-            error_pct = abs(predicted_esr - capacitor.esr_100khz) / capacitor.esr_100khz * 100 if capacitor.esr_100khz else float('nan')
-            
-            print(f"{str(capacitor.series):<10} {capacitor.capacitance:<10.1f} {capacitor.voltage:<12.1f} {dims:<15} {predicted_esr:<15.3f} {capacitor.esr_100khz:<15.3f} {error_pct:<10.1f}")
-        
-        # Print summary statistics
-        errors = [abs(p - a) for p, a in zip(all_predictions, all_actuals)]
-        avg_error = sum(errors) / len(errors)
-        max_error = max(errors)
-        
-        error_percentages = [100 * err / act if act > 0 else float('nan') for err, act in zip(errors, all_actuals)]
-        avg_pct_error = np.nanmean(error_percentages)
-        max_pct_error = np.nanmax(error_percentages)
-        
-        print("\nOverall Prediction Statistics:")
-        print(f"Total samples evaluated: {len(all_predictions)}")
-        print(f"Average absolute error: {avg_error:.3f}Ω")
-        print(f"Maximum absolute error: {max_error:.3f}Ω")
-        print(f"Average percentage error: {avg_pct_error:.1f}%")
-        print(f"Maximum percentage error: {max_pct_error:.1f}%")
-        
-        # Generate comparison visualization with all samples
-        try:
-            generate_comparison_chart(all_predictions, all_actuals, all_series)
-        except ImportError:
-            print("\nMatplotlib not available - skipping chart generation")
+    # Run comparison of models with and without dissipation factor
+    comparison_results = generate_model_comparison(csv_path)
 
 
 if __name__ == "__main__":
