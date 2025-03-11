@@ -1,85 +1,128 @@
-Voltage,Capacitance,ESR(est.) 20°C@10kHz,ESR(est.) 20°C@100kHz,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),Dissipation Factor,ESR(est.) 20°C@120Hz,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current 150°C@100kHz,Ripple Current 150°C@10kHz,Ripple Current 150°C@120Hz,Ripple Current 150°C@1kHz,Ripple Current 150°C@300Hz,Ripple Current 150°C@50Hz,Status,V,VC,Vibration resistant,Weight (g)
-10,330,,,10,16,-55,150,0.2,0.804,1000,99,1800,UBX1A331MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,300,,,,,,EOL,,3300,Normal,1.77
-10,470,,,10,20,-55,150,0.2,0.564,1000,141,1400,UBX1A471MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,400,,,,,,EOL,,4700,Normal,2.34
-10,1000,,,12.5,25,-55,150,0.2,0.292,1000,300,800,UBX1A102MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,600,,,,,,LTB,,10000,Normal,4.56
-10,2200,,,16,30.5,-55,150,0.22,0.157,2000,660,300,UBX1A222MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1000,,,,,,LTB,,22000,Normal,9.6
-10,3300,,,18,35.5,-55,150,0.24,0.121,2000,990,250,UBX1A332MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1200,,,,,,LTB,,33000,Normal,14.2
-10,4700,,,18,40,-55,150,0.26,0.096,2000,1410,200,UBX1A472MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1300,,,,,,LTB,,47000,Normal,17.7
-16,220,,,10,16,-55,150,0.16,0.965,1000,106,1800,UBX1C221MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,300,,,,,,EOL,,3520,Normal,1.77
-16,330,,,10,20,-55,150,0.16,0.643,1000,158,1400,UBX1C331MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,400,,,,,,EOL,,5280,Normal,2.34
-16,470,,,12.5,20,-55,150,0.16,0.452,1000,226,1000,UBX1C471MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,600,,,,,,MP,,7520,Normal,3.43
-16,1000,,,16,25,-55,150,0.16,0.239,2000,480,400,UBX1C102MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,800,,,,,,MP,,16000,Normal,8.2
-16,2200,,,18,35.5,-55,150,0.18,0.133,2000,1056,250,UBX1C222MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1200,,,,,,MP,,35200,Normal,14.2
-16,3300,,,18,40,-55,150,0.2,0.104,2000,1584,200,UBX1C332MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1300,,,,,,MP,,52800,Normal,17.7
-25,100,,,10,12.5,-55,150,0.14,1.857,1000,75,2000,UBX1E101MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,250,,,,,,EOL,,2500,Normal,1.49
-25,220,,,12.5,20,-55,150,0.14,0.844,1000,165,1000,UBX1E221MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,500,,,,,,MP,,5500,Normal,3.43
-25,330,,,12.5,25,-55,150,0.14,0.563,1000,248,800,UBX1E331MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,600,,,,,,MP,,8250,Normal,4.56
-25,470,,,16,25,-55,150,0.14,0.395,2000,353,400,UBX1E471MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,800,,,,,,MP,,11750,Normal,8.2
-25,1000,,,16,30.5,-55,150,0.14,0.212,2000,750,300,UBX1E102MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1000,,,,,,MP,,25000,Normal,9.6
-35,2.2,,,10,12.5,-55,150,0.12,72.343,1000,4,2000,UBX1V2R2MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,50,,,,,,EOL,,77,Normal,1.49
-35,3.3,,,10,12.5,-55,150,0.12,48.229,1000,4,2000,UBX1V3R3MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,60,,,,,,EOL,,115.5,Normal,1.49
-35,4.7,,,10,12.5,-55,150,0.12,33.863,1000,5,2000,UBX1V4R7MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,85,,,,,,EOL,,164.5,Normal,1.49
-35,10,,,10,12.5,-55,150,0.12,15.916,1000,11,2000,UBX1V100MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,175,,,,,,EOL,,350,Normal,1.49
-35,22,,,10,12.5,-55,150,0.12,7.234,1000,23,2000,UBX1V220MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,200,,,,,,EOL,,770,Normal,1.49
-35,33,,,10,12.5,-55,150,0.12,4.823,1000,35,2000,UBX1V330MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,225,,,,,,EOL,,1155,Normal,1.49
-35,47,,,10,12.5,-55,150,0.12,3.386,1000,49,2000,UBX1V470MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,250,,,,,,EOL,,1645,Normal,1.49
-35,100,,,10,20,-55,150,0.12,1.592,1000,105,1400,UBX1V101MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,400,,,,,,EOL,,3500,Normal,2.34
-35,220,,,12.5,25,-55,150,0.12,0.723,1000,231,800,UBX1V221MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,600,,,,,,MP,,7700,Normal,4.56
-35,330,,,16,25,-55,150,0.12,0.482,2000,347,400,UBX1V331MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,800,,,,,,MP,,11550,Normal,8.2
-35,470,,,16,30.5,-55,150,0.12,0.339,2000,494,300,UBX1V471MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1000,,,,,,MP,,16450,Normal,9.6
-35,1000,,,18,40,-55,150,0.12,0.186,2000,1050,200,UBX1V102MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1300,,,,,,MP,,35000,Normal,17.7
-50,100,,,10,12.5,-55,150,0.1,1.326,1000,150,2000,UBX1H101MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,380,,,,,,EOL,,5000,Normal,1.49
-50,220,,,10,20,-55,150,0.1,0.603,1000,330,1400,UBX1H221MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,640,,,,,,EOL,,11000,Normal,2.34
-50,330,,,12.5,20,-55,150,0.1,0.402,1000,495,1000,UBX1H331MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,770,,,,,,MP,,16500,Normal,3.43
-50,470,,,12.5,25,-55,150,0.1,0.282,1000,705,800,UBX1H471MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,960,,,,,,MP,,23500,Normal,4.56
-50,560,,,12.5,30.5,-55,150,0.1,0.237,1000,840,600,UBX1H561MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1080,,,,,,MP,,28000,Normal,6.01
-50,680,,,16,25,-55,150,0.1,0.195,2000,1020,400,UBX1H681MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1190,,,,,,MP,,34000,Normal,8.2
-50,1000,,,16,30.5,-55,150,0.1,0.159,2000,1500,300,UBX1H102MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1420,,,,,,MP,,50000,Normal,9.6
-63,56,,,10,12.5,-55,150,0.1,2.368,1000,106,2000,UBX1J560MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,430,,,,,,EOL,,3528,Normal,1.49
-63,68,,,10,16,-55,150,0.1,1.95,1000,129,1800,UBX1J680MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,560,,,,,,EOL,,4284,Normal,1.77
-63,100,,,10,20,-55,150,0.1,1.326,1000,189,1400,UBX1J101MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,710,,,,,,EOL,,6300,Normal,2.34
-63,220,,,12.5,25,-55,150,0.1,0.603,1000,416,800,UBX1J221MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1040,,,,,,MP,,13860,Normal,4.56
-63,330,,,12.5,30.5,-55,150,0.1,0.402,1000,624,600,UBX1J331MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1170,,,,,,MP,,20790,Normal,6.01
-63,470,,,16,25,-55,150,0.1,0.282,2000,888,400,UBX1J471MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1280,,,,,,MP,,29610,Normal,8.2
-63,560,,,16,30.5,-55,150,0.1,0.237,2000,1058,300,UBX1J561MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1520,,,,,,MP,,35280,Normal,9.6
-63,680,,,16,35.5,-55,150,0.1,0.195,2000,1285,300,UBX1J681MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1520,,,,,,MP,,42840,Normal,11.8
-80,33,,,10,12.5,-55,150,0.08,3.215,1000,79,2000,UBX1K330MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,420,,,,,,EOL,,2640,Normal,1.49
-80,47,,,10,16,-55,150,0.08,2.258,1000,113,1800,UBX1K470MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,550,,,,,,EOL,,3760,Normal,1.77
-80,56,,,10,20,-55,150,0.08,1.895,1000,134,1400,UBX1K560MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,690,,,,,,EOL,,4480,Normal,2.34
-80,68,,,10,20,-55,150,0.08,1.56,1000,163,1400,UBX1K680MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,690,,,,,,EOL,,5440,Normal,2.34
-80,100,,,12.5,20,-55,150,0.08,1.061,1000,240,1000,UBX1K101MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,820,,,,,,MP,,8000,Normal,3.43
-80,220,,,16,25,-55,150,0.08,0.482,2000,528,400,UBX1K221MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1250,,,,,,MP,,17600,Normal,8.2
-80,330,,,16,30.5,-55,150,0.08,0.322,2000,792,300,UBX1K331MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1480,,,,,,MP,,26400,Normal,9.6
-80,470,,,18,30.5,-55,150,0.08,0.226,2000,1128,300,UBX1K471MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1530,,,,,,MP,,37600,Normal,13.1
-100,22,,,10,12.5,-55,150,0.08,4.823,1000,66,2000,UBX2A220MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,390,,,,,,EOL,,2200,Normal,1.49
-100,33,,,10,16,-55,150,0.08,3.215,1000,99,1800,UBX2A330MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,510,,,,,,EOL,,3300,Normal,1.77
-100,47,,,10,20,-55,150,0.08,2.258,1000,141,1400,UBX2A470MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,640,,,,,,EOL,,4700,Normal,2.34
-100,56,,,10,20,-55,150,0.08,1.895,1000,168,1400,UBX2A560MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,640,,,,,,EOL,,5600,Normal,2.34
-100,68,,,12.5,20,-55,150,0.08,1.56,1000,204,1000,UBX2A680MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,760,,,,,,MP,,6800,Normal,3.43
-100,100,,,12.5,25,-55,150,0.08,1.061,1000,300,800,UBX2A101MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,950,,,,,,MP,,10000,Normal,4.56
-100,220,,,16,30.5,-55,150,0.08,0.482,2000,660,300,UBX2A221MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1380,,,,,,MP,,22000,Normal,9.6
-100,330,,,18,30.5,-55,150,0.08,0.322,2000,990,300,UBX2A331MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1430,,,,,,MP,,33000,Normal,13.1
-160,10,,,10,12.5,-40,150,0.2,26.526,1000,164,2000,UBX2C100MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,110,,,,,,EOL,,1600,Normal,1.49
-160,15,,,10,12.5,-40,150,0.2,17.684,1000,196,2000,UBX2C150MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,110,,,,,,EOL,,2400,Normal,1.49
-160,22,,,10,16,-40,150,0.2,12.057,1000,241,1800,UBX2C220MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,160,,,,,,EOL,,3520,Normal,1.77
-160,33,,,12.5,20,-40,150,0.2,8.038,1000,311,1000,UBX2C330MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,230,,,,,,MP,,5280,Normal,3.43
-160,47,,,12.5,20,-40,150,0.2,5.644,1000,401,1000,UBX2C470MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,250,,,,,,MP,,7520,Normal,3.43
-160,56,,,12.5,25,-40,150,0.2,4.737,1000,458,800,UBX2C560MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,270,,,,,,MP,,8960,Normal,4.56
-160,68,,,16,20,-40,150,0.2,3.901,2000,535,600,UBX2C680MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,290,,,,,,MP,,10880,Normal,6.6
-160,100,,,16,25,-40,150,0.2,2.653,2000,740,400,UBX2C101MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,300,,,,,,MP,,16000,Normal,8.2
-200,6.8,,,10,12.5,-40,150,0.2,39.009,1000,154,2000,UBX2D6R8MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,83,,,,,,EOL,,1360,Normal,1.49
-200,10,,,10,12.5,-40,150,0.2,26.526,1000,180,2000,UBX2D100MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,83,,,,,,EOL,,2000,Normal,1.49
-200,15,,,10,16,-40,150,0.2,17.684,1000,220,1800,UBX2D150MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,130,,,,,,EOL,,3000,Normal,1.77
-200,22,,,10,20,-40,150,0.2,12.057,1000,276,1400,UBX2D220MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,170,,,,,,EOL,,4400,Normal,2.34
-200,33,,,12.5,20,-40,150,0.2,8.038,1000,364,1000,UBX2D330MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,210,,,,,,MP,,6600,Normal,3.43
-200,47,,,12.5,25,-40,150,0.2,5.644,1000,476,800,UBX2D470MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,250,,,,,,MP,,9400,Normal,4.56
-200,56,,,16,20,-40,150,0.2,4.737,2000,548,600,UBX2D560MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,270,,,,,,MP,,11200,Normal,6.6
-200,68,,,16,25,-40,150,0.2,3.901,2000,644,400,UBX2D680MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,290,,,,,,MP,,13600,Normal,8.2
-350,4.7,,,10,16,-25,150,0.24,67.726,1000,166,1800,UBX2V4R7MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,77,,,,,,EOL,,1645,Normal,1.77
-350,6.8,,,10,20,-25,150,0.24,46.81,1000,195,1400,UBX2V6R8MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,110,,,,,,EOL,,2380,Normal,2.34
-350,10,,,12.5,20,-25,150,0.24,31.831,1000,240,1000,UBX2V100MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,120,,,,,,MP,,3500,Normal,3.43
-350,15,,,12.5,25,-25,150,0.24,21.221,1000,310,800,UBX2V150MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,130,,,,,,MP,,5250,Normal,4.56
-400,4.7,,,10,20,-25,150,0.24,67.726,1000,175,1400,UBX2G4R7MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,83,,,,,,EOL,,1880,Normal,2.34
-400,6.8,,,12.5,20,-25,150,0.24,46.81,1000,209,1000,UBX2G6R8MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,88,,,,,,MP,,2720,Normal,3.43
-400,10,,,12.5,25,-25,150,0.24,31.831,1000,260,800,UBX2G100MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,105,,,,,,MP,,4000,Normal,4.56
-400,15,,,12.5,25,-25,150,0.24,21.221,1000,340,800,UBX2G150MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,105,,,,,,MP,,6000,Normal,4.56
+Voltage,Capacitance,Dissipation Factor,Case Size Diameter,Case Size Length,Category Lower Limited Temperature (℃),Category Upper Limited Temperature (℃),ESR(est.) 20°C@120Hz,Endurance,Leakage Current,Minimum Quantity,Part Number,Polarity type,Product category,Product summary,Ripple Current 150°C@100kHz,Ripple Current 150°C@10kHz,Ripple Current 150°C@120Hz,Ripple Current 150°C@1kHz,Ripple Current 150°C@300Hz,Ripple Current 150°C@50Hz,Status,V,VC,Vibration resistant,Weight (g)
+10,330,0.2,10,16,-55,150,0.804,1000,99,1800,UBX1A331MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,300,300,201.34,273.83,237.58,,EOL,16 to 100,3300,Normal,1.77
+10,470,0.2,10,20,-55,150,0.564,1000,141,1400,UBX1A471MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,400,400,268.46,365.1,316.78,,EOL,16 to 100,4700,Normal,2.34
+10,1000,0.2,12.5,25,-55,150,0.292,1000,300,800,UBX1A102MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,600,600,402.68,547.65,475.17,,LTB,16 to 100,10000,Normal,4.56
+10,2200,0.22,16,30.5,-55,150,0.157,2000,660,300,UBX1A222MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1000,1000,671.14,912.75,791.95,,LTB,16 to 100,22000,Normal,9.6
+10,3300,0.24,18,35.5,-55,150,0.121,2000,990,250,UBX1A332MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1200,1200,805.37,1095.3,950.34,,LTB,16 to 100,33000,Normal,14.2
+10,4700,0.26,18,40,-55,150,0.096,2000,1410,200,UBX1A472MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1300,1300,872.48,1186.58,1029.53,,LTB,16 to 100,47000,Normal,17.7
+16,220,0.16,10,16,-55,150,0.965,1000,106,1800,UBX1C221MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,300,300,201.34,273.83,237.58,,EOL,16 to 100,3520,Normal,1.77
+16,330,0.16,10,20,-55,150,0.643,1000,158,1400,UBX1C331MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,400,400,268.46,365.1,316.78,,EOL,16 to 100,5280,Normal,2.34
+16,470,0.16,12.5,20,-55,150,0.452,1000,226,1000,UBX1C471MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,600,600,402.68,547.65,475.17,,MP,16 to 100,7520,Normal,3.43
+16,1000,0.16,16,25,-55,150,0.239,2000,480,400,UBX1C102MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,800,800,536.91,730.2,633.56,,MP,16 to 100,16000,Normal,8.2
+16,2200,0.18,18,35.5,-55,150,0.133,2000,1056,250,UBX1C222MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1200,1200,805.37,1095.3,950.34,,MP,16 to 100,35200,Normal,14.2
+16,3300,0.2,18,40,-55,150,0.104,2000,1584,200,UBX1C332MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1300,1300,872.48,1186.58,1029.53,,MP,16 to 100,52800,Normal,17.7
+25,100,0.14,10,12.5,-55,150,1.857,1000,75,2000,UBX1E101MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,250,,,,,,EOL,160 to 400,2500,Normal,1.49
+25,100,0.14,10,12.5,-55,150,1.857,1000,75,2000,UBX1E101MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,250,250,167.79,228.19,197.99,,EOL,16 to 100,2500,Normal,1.49
+25,220,0.14,12.5,20,-55,150,0.844,1000,165,1000,UBX1E221MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,500,500,335.57,456.38,395.97,,MP,16 to 100,5500,Normal,3.43
+25,330,0.14,12.5,25,-55,150,0.563,1000,248,800,UBX1E331MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,600,600,402.68,547.65,475.17,,MP,16 to 100,8250,Normal,4.56
+25,470,0.14,16,25,-55,150,0.395,2000,353,400,UBX1E471MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,800,800,536.91,730.2,633.56,,MP,16 to 100,11750,Normal,8.2
+25,1000,0.14,16,30.5,-55,150,0.212,2000,750,300,UBX1E102MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1000,1000,671.14,912.75,791.95,,MP,16 to 100,25000,Normal,9.6
+35,2.2,0.12,10,12.5,-55,150,72.343,1000,4,2000,UBX1V2R2MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,50,50,25,41.5,32,,EOL,16 to 100,77,Normal,1.49
+35,3.3,0.12,10,12.5,-55,150,48.229,1000,4,2000,UBX1V3R3MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,60,60,30,49.8,38.4,,EOL,16 to 100,115.5,Normal,1.49
+35,4.7,0.12,10,12.5,-55,150,33.863,1000,5,2000,UBX1V4R7MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,85,85,42.5,70.55,54.4,,EOL,16 to 100,164.5,Normal,1.49
+35,10,0.12,10,12.5,-55,150,15.916,1000,11,2000,UBX1V100MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,175,,,,,,EOL,160 to 400,350,Normal,1.49
+35,10,0.12,10,12.5,-55,150,15.916,1000,11,2000,UBX1V100MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,175,175,87.5,145.25,112,,EOL,16 to 100,350,Normal,1.49
+35,22,0.12,10,12.5,-55,150,7.234,1000,23,2000,UBX1V220MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,200,,,,,,EOL,160 to 400,770,Normal,1.49
+35,22,0.12,10,12.5,-55,150,7.234,1000,23,2000,UBX1V220MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,200,200,100,166,128,,EOL,16 to 100,770,Normal,1.49
+35,33,0.12,10,12.5,-55,150,4.823,1000,35,2000,UBX1V330MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,225,,,,,,EOL,160 to 400,1155,Normal,1.49
+35,33,0.12,10,12.5,-55,150,4.823,1000,35,2000,UBX1V330MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,225,225,151.01,205.37,178.19,,EOL,16 to 100,1155,Normal,1.49
+35,47,0.12,10,12.5,-55,150,3.386,1000,49,2000,UBX1V470MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,250,,,,,,EOL,160 to 400,1645,Normal,1.49
+35,47,0.12,10,12.5,-55,150,3.386,1000,49,2000,UBX1V470MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,250,250,167.79,228.19,197.99,,EOL,16 to 100,1645,Normal,1.49
+35,100,0.12,10,20,-55,150,1.592,1000,105,1400,UBX1V101MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,400,,,,,,EOL,160 to 400,3500,Normal,2.34
+35,100,0.12,10,20,-55,150,1.592,1000,105,1400,UBX1V101MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,400,400,268.46,365.1,316.78,,EOL,16 to 100,3500,Normal,2.34
+35,220,0.12,12.5,25,-55,150,0.723,1000,231,800,UBX1V221MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,600,600,402.68,547.65,475.17,,MP,16 to 100,7700,Normal,4.56
+35,330,0.12,16,25,-55,150,0.482,2000,347,400,UBX1V331MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,800,800,536.91,730.2,633.56,,MP,16 to 100,11550,Normal,8.2
+35,470,0.12,16,30.5,-55,150,0.339,2000,494,300,UBX1V471MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1000,1000,671.14,912.75,791.95,,MP,16 to 100,16450,Normal,9.6
+35,1000,0.12,18,40,-55,150,0.186,2000,1050,200,UBX1V102MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1300,1300,872.48,1186.58,1029.53,,MP,16 to 100,35000,Normal,17.7
+50,100,0.1,10,12.5,-55,150,1.326,1000,150,2000,UBX1H101MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,380,,,,,,EOL,160 to 400,5000,Normal,1.49
+50,100,0.1,10,12.5,-55,150,1.326,1000,150,2000,UBX1H101MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,380,380,255.03,346.85,300.94,,EOL,16 to 100,5000,Normal,1.49
+50,220,0.1,10,20,-55,150,0.603,1000,330,1400,UBX1H221MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,640,640,429.53,584.16,506.85,,EOL,16 to 100,11000,Normal,2.34
+50,330,0.1,12.5,20,-55,150,0.402,1000,495,1000,UBX1H331MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,770,770,516.78,702.82,609.8,,MP,16 to 100,16500,Normal,3.43
+50,470,0.1,12.5,25,-55,150,0.282,1000,705,800,UBX1H471MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,960,960,644.3,876.24,760.27,,MP,16 to 100,23500,Normal,4.56
+50,560,0.1,12.5,30.5,-55,150,0.237,1000,840,600,UBX1H561MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1080,1080,724.83,985.77,855.3,,MP,16 to 100,28000,Normal,6.01
+50,680,0.1,16,25,-55,150,0.195,2000,1020,400,UBX1H681MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1190,1190,798.66,1086.17,942.42,,MP,16 to 100,34000,Normal,8.2
+50,1000,0.1,16,30.5,-55,150,0.159,2000,1500,300,UBX1H102MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1420,1420,953.02,1296.11,1124.56,,MP,16 to 100,50000,Normal,9.6
+63,56,0.1,10,12.5,-55,150,2.368,1000,106,2000,UBX1J560MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,430,,,,,,EOL,160 to 400,3528,Normal,1.49
+63,56,0.1,10,12.5,-55,150,2.368,1000,106,2000,UBX1J560MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,430,430,288.59,392.48,340.54,,EOL,16 to 100,3528,Normal,1.49
+63,68,0.1,10,16,-55,150,1.95,1000,129,1800,UBX1J680MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,560,,,,,,EOL,160 to 400,4284,Normal,1.77
+63,68,0.1,10,16,-55,150,1.95,1000,129,1800,UBX1J680MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,560,560,375.84,511.14,443.49,,EOL,16 to 100,4284,Normal,1.77
+63,100,0.1,10,20,-55,150,1.326,1000,189,1400,UBX1J101MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,710,,,,,,EOL,160 to 400,6300,Normal,2.34
+63,100,0.1,10,20,-55,150,1.326,1000,189,1400,UBX1J101MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,710,710,476.51,648.05,562.28,,EOL,16 to 100,6300,Normal,2.34
+63,220,0.1,12.5,25,-55,150,0.603,1000,416,800,UBX1J221MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1040,1040,697.99,949.26,823.62,,MP,16 to 100,13860,Normal,4.56
+63,330,0.1,12.5,30.5,-55,150,0.402,1000,624,600,UBX1J331MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1170,1170,785.23,1067.92,926.58,,MP,16 to 100,20790,Normal,6.01
+63,470,0.1,16,25,-55,150,0.282,2000,888,400,UBX1J471MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1280,1280,859.06,1168.32,1013.69,,MP,16 to 100,29610,Normal,8.2
+63,560,0.1,16,30.5,-55,150,0.237,2000,1058,300,UBX1J561MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1520,1520,1020.13,1387.38,1203.76,,MP,16 to 100,35280,Normal,9.6
+63,680,0.1,16,35.5,-55,150,0.195,2000,1285,300,UBX1J681MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1520,1520,1020.13,1387.38,1203.76,,MP,16 to 100,42840,Normal,11.8
+80,33,0.08,10,12.5,-55,150,3.215,1000,79,2000,UBX1K330MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,420,,,,,,EOL,160 to 400,2640,Normal,1.49
+80,33,0.08,10,12.5,-55,150,3.215,1000,79,2000,UBX1K330MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,420,420,281.88,383.36,332.62,,EOL,16 to 100,2640,Normal,1.49
+80,47,0.08,10,16,-55,150,2.258,1000,113,1800,UBX1K470MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,550,,,,,,EOL,160 to 400,3760,Normal,1.77
+80,47,0.08,10,16,-55,150,2.258,1000,113,1800,UBX1K470MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,550,550,369.13,502.01,435.57,,EOL,16 to 100,3760,Normal,1.77
+80,56,0.08,10,20,-55,150,1.895,1000,134,1400,UBX1K560MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,690,,,,,,EOL,160 to 400,4480,Normal,2.34
+80,56,0.08,10,20,-55,150,1.895,1000,134,1400,UBX1K560MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,690,690,463.09,629.8,546.44,,EOL,16 to 100,4480,Normal,2.34
+80,68,0.08,10,20,-55,150,1.56,1000,163,1400,UBX1K680MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,690,,,,,,EOL,160 to 400,5440,Normal,2.34
+80,68,0.08,10,20,-55,150,1.56,1000,163,1400,UBX1K680MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,690,690,463.09,629.8,546.44,,EOL,16 to 100,5440,Normal,2.34
+80,100,0.08,12.5,20,-55,150,1.061,1000,240,1000,UBX1K101MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,820,,,,,,MP,160 to 400,8000,Normal,3.43
+80,100,0.08,12.5,20,-55,150,1.061,1000,240,1000,UBX1K101MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,820,820,550.34,748.46,649.4,,MP,16 to 100,8000,Normal,3.43
+80,220,0.08,16,25,-55,150,0.482,2000,528,400,UBX1K221MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1250,1250,838.93,1140.94,989.93,,MP,16 to 100,17600,Normal,8.2
+80,330,0.08,16,30.5,-55,150,0.322,2000,792,300,UBX1K331MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1480,1480,993.29,1350.87,1172.08,,MP,16 to 100,26400,Normal,9.6
+80,470,0.08,18,30.5,-55,150,0.226,2000,1128,300,UBX1K471MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1530,1530,1026.85,1396.51,1211.68,,MP,16 to 100,37600,Normal,13.1
+100,22,0.08,10,12.5,-55,150,4.823,1000,66,2000,UBX2A220MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,390,,,,,,EOL,160 to 400,2200,Normal,1.49
+100,22,0.08,10,12.5,-55,150,4.823,1000,66,2000,UBX2A220MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,390,390,261.74,355.97,308.86,,EOL,16 to 100,2200,Normal,1.49
+100,33,0.08,10,16,-55,150,3.215,1000,99,1800,UBX2A330MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,510,,,,,,EOL,160 to 400,3300,Normal,1.77
+100,33,0.08,10,16,-55,150,3.215,1000,99,1800,UBX2A330MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,510,510,342.28,465.5,403.89,,EOL,16 to 100,3300,Normal,1.77
+100,47,0.08,10,20,-55,150,2.258,1000,141,1400,UBX2A470MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,640,,,,,,EOL,160 to 400,4700,Normal,2.34
+100,47,0.08,10,20,-55,150,2.258,1000,141,1400,UBX2A470MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,640,640,429.53,584.16,506.85,,EOL,16 to 100,4700,Normal,2.34
+100,56,0.08,10,20,-55,150,1.895,1000,168,1400,UBX2A560MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,640,,,,,,EOL,160 to 400,5600,Normal,2.34
+100,56,0.08,10,20,-55,150,1.895,1000,168,1400,UBX2A560MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,640,640,429.53,584.16,506.85,,EOL,16 to 100,5600,Normal,2.34
+100,68,0.08,12.5,20,-55,150,1.56,1000,204,1000,UBX2A680MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,760,,,,,,MP,160 to 400,6800,Normal,3.43
+100,68,0.08,12.5,20,-55,150,1.56,1000,204,1000,UBX2A680MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,760,760,510.07,693.69,601.88,,MP,16 to 100,6800,Normal,3.43
+100,100,0.08,12.5,25,-55,150,1.061,1000,300,800,UBX2A101MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,950,,,,,,MP,160 to 400,10000,Normal,4.56
+100,100,0.08,12.5,25,-55,150,1.061,1000,300,800,UBX2A101MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,950,950,637.58,867.11,752.35,,MP,16 to 100,10000,Normal,4.56
+100,220,0.08,16,30.5,-55,150,0.482,2000,660,300,UBX2A221MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1380,1380,926.17,1259.6,1092.89,,MP,16 to 100,22000,Normal,9.6
+100,330,0.08,18,30.5,-55,150,0.322,2000,990,300,UBX2A331MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,1430,1430,959.73,1305.23,1132.48,,MP,16 to 100,33000,Normal,13.1
+160,10,0.2,10,12.5,-40,150,26.526,1000,164,2000,UBX2C100MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,110,,,,,,EOL,160 to 400,1600,Normal,1.49
+160,10,0.2,10,12.5,-40,150,26.526,1000,164,2000,UBX2C100MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,110,110,73.83,100.4,87.11,,EOL,16 to 100,1600,Normal,1.49
+160,15,0.2,10,12.5,-40,150,17.684,1000,196,2000,UBX2C150MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,110,,,,,,EOL,160 to 400,2400,Normal,1.49
+160,15,0.2,10,12.5,-40,150,17.684,1000,196,2000,UBX2C150MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,110,110,73.83,100.4,87.11,,EOL,16 to 100,2400,Normal,1.49
+160,22,0.2,10,16,-40,150,12.057,1000,241,1800,UBX2C220MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,160,,,,,,EOL,160 to 400,3520,Normal,1.77
+160,22,0.2,10,16,-40,150,12.057,1000,241,1800,UBX2C220MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,160,160,107.38,146.04,126.71,,EOL,16 to 100,3520,Normal,1.77
+160,33,0.2,12.5,20,-40,150,8.038,1000,311,1000,UBX2C330MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,230,,,,,,MP,160 to 400,5280,Normal,3.43
+160,33,0.2,12.5,20,-40,150,8.038,1000,311,1000,UBX2C330MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,230,230,154.36,209.93,182.15,,MP,16 to 100,5280,Normal,3.43
+160,47,0.2,12.5,20,-40,150,5.644,1000,401,1000,UBX2C470MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,250,,,,,,MP,160 to 400,7520,Normal,3.43
+160,47,0.2,12.5,20,-40,150,5.644,1000,401,1000,UBX2C470MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,250,250,167.79,228.19,197.99,,MP,16 to 100,7520,Normal,3.43
+160,56,0.2,12.5,25,-40,150,4.737,1000,458,800,UBX2C560MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,270,,,,,,MP,160 to 400,8960,Normal,4.56
+160,56,0.2,12.5,25,-40,150,4.737,1000,458,800,UBX2C560MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,270,270,181.21,246.44,213.83,,MP,16 to 100,8960,Normal,4.56
+160,68,0.2,16,20,-40,150,3.901,2000,535,600,UBX2C680MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,290,,,,,,MP,160 to 400,10880,Normal,6.6
+160,68,0.2,16,20,-40,150,3.901,2000,535,600,UBX2C680MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,290,290,194.63,264.7,229.66,,MP,16 to 100,10880,Normal,6.6
+160,100,0.2,16,25,-40,150,2.653,2000,740,400,UBX2C101MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,300,,,,,,MP,160 to 400,16000,Normal,8.2
+160,100,0.2,16,25,-40,150,2.653,2000,740,400,UBX2C101MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,300,300,201.34,273.83,237.58,,MP,16 to 100,16000,Normal,8.2
+200,6.8,0.2,10,12.5,-40,150,39.009,1000,154,2000,UBX2D6R8MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,83,,,,,,EOL,160 to 400,1360,Normal,1.49
+200,6.8,0.2,10,12.5,-40,150,39.009,1000,154,2000,UBX2D6R8MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,83,83,55.7,75.76,65.73,,EOL,16 to 100,1360,Normal,1.49
+200,10,0.2,10,12.5,-40,150,26.526,1000,180,2000,UBX2D100MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,83,,,,,,EOL,160 to 400,2000,Normal,1.49
+200,10,0.2,10,12.5,-40,150,26.526,1000,180,2000,UBX2D100MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,83,83,55.7,75.76,65.73,,EOL,16 to 100,2000,Normal,1.49
+200,15,0.2,10,16,-40,150,17.684,1000,220,1800,UBX2D150MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,130,,,,,,EOL,160 to 400,3000,Normal,1.77
+200,15,0.2,10,16,-40,150,17.684,1000,220,1800,UBX2D150MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,130,130,87.25,118.66,102.95,,EOL,16 to 100,3000,Normal,1.77
+200,22,0.2,10,20,-40,150,12.057,1000,276,1400,UBX2D220MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,170,,,,,,EOL,160 to 400,4400,Normal,2.34
+200,22,0.2,10,20,-40,150,12.057,1000,276,1400,UBX2D220MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,170,170,114.09,155.17,134.63,,EOL,16 to 100,4400,Normal,2.34
+200,33,0.2,12.5,20,-40,150,8.038,1000,364,1000,UBX2D330MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,210,,,,,,MP,160 to 400,6600,Normal,3.43
+200,33,0.2,12.5,20,-40,150,8.038,1000,364,1000,UBX2D330MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,210,210,140.94,191.68,166.31,,MP,16 to 100,6600,Normal,3.43
+200,47,0.2,12.5,25,-40,150,5.644,1000,476,800,UBX2D470MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,250,,,,,,MP,160 to 400,9400,Normal,4.56
+200,47,0.2,12.5,25,-40,150,5.644,1000,476,800,UBX2D470MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,250,250,167.79,228.19,197.99,,MP,16 to 100,9400,Normal,4.56
+200,56,0.2,16,20,-40,150,4.737,2000,548,600,UBX2D560MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,270,,,,,,MP,160 to 400,11200,Normal,6.6
+200,56,0.2,16,20,-40,150,4.737,2000,548,600,UBX2D560MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,270,270,181.21,246.44,213.83,,MP,16 to 100,11200,Normal,6.6
+200,68,0.2,16,25,-40,150,3.901,2000,644,400,UBX2D680MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,290,,,,,,MP,160 to 400,13600,Normal,8.2
+200,68,0.2,16,25,-40,150,3.901,2000,644,400,UBX2D680MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,290,290,194.63,264.7,229.66,,MP,16 to 100,13600,Normal,8.2
+350,4.7,0.24,10,16,-25,150,67.726,1000,166,1800,UBX2V4R7MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,77,77,51.68,70.28,60.98,,EOL,16 to 100,1645,Normal,1.77
+350,6.8,0.24,10,20,-25,150,46.81,1000,195,1400,UBX2V6R8MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,110,,,,,,EOL,160 to 400,2380,Normal,2.34
+350,6.8,0.24,10,20,-25,150,46.81,1000,195,1400,UBX2V6R8MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,110,110,73.83,100.4,87.11,,EOL,16 to 100,2380,Normal,2.34
+350,10,0.24,12.5,20,-25,150,31.831,1000,240,1000,UBX2V100MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,120,,,,,,MP,160 to 400,3500,Normal,3.43
+350,10,0.24,12.5,20,-25,150,31.831,1000,240,1000,UBX2V100MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,120,120,80.54,109.53,95.03,,MP,16 to 100,3500,Normal,3.43
+350,15,0.24,12.5,25,-25,150,21.221,1000,310,800,UBX2V150MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,130,,,,,,MP,160 to 400,5250,Normal,4.56
+350,15,0.24,12.5,25,-25,150,21.221,1000,310,800,UBX2V150MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,130,130,87.25,118.66,102.95,,MP,16 to 100,5250,Normal,4.56
+400,4.7,0.24,10,20,-25,150,67.726,1000,175,1400,UBX2G4R7MPL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,83,83,55.7,75.76,65.73,,EOL,16 to 100,1880,Normal,2.34
+400,6.8,0.24,12.5,20,-25,150,46.81,1000,209,1000,UBX2G6R8MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,88,,,,,,MP,160 to 400,2720,Normal,3.43
+400,6.8,0.24,12.5,20,-25,150,46.81,1000,209,1000,UBX2G6R8MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,88,88,59.06,80.32,69.69,,MP,16 to 100,2720,Normal,3.43
+400,10,0.24,12.5,25,-25,150,31.831,1000,260,800,UBX2G100MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,105,,,,,,MP,160 to 400,4000,Normal,4.56
+400,10,0.24,12.5,25,-25,150,31.831,1000,260,800,UBX2G100MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,105,105,70.47,95.84,83.15,,MP,16 to 100,4000,Normal,4.56
+400,15,0.24,12.5,25,-25,150,21.221,1000,340,800,UBX2G150MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,105,,,,,,MP,160 to 400,6000,Normal,4.56
+400,15,0.24,12.5,25,-25,150,21.221,1000,340,800,UBX2G150MHL,Uni-Polar,Radial Lead,Hi-Temp.(150degC) For Automotive,105,105,70.47,95.84,83.15,,MP,16 to 100,6000,Normal,4.56

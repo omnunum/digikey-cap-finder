@@ -268,18 +268,7 @@ def calculate_esr_from_dissipation(
         esr = (row['Dissipation Factor'] + capacitance_factor_offset) / (2 * 3.14159 * 120 * row['Capacitance'] * 1e-6)
 
         coef_column_name = f"Frequency Coefficient {freq_str}"
-        # Apply frequency coefficient if available.  The coefficient is squared because its a 
-        #  ripple freq coefficient, and we need convert it to a series impedance coefficient.
-        #  This is very lossy and janky but its directionally correct.
-        if frequency != 120.0:
-            if pd.notnull(row.get(coef_column_name)):
-                esr /= row[coef_column_name] ** 2
-            # We are trying to calculate ESR at a frequency that is not 120Hz, but there is no
-            #  frequency coefficient for that frequency.  Return None to indicate that we don't
-            #  have a valid ESR value for this row.
-            else:
-                return np.nan
-            
+
         return round(esr, 3)
 
 
@@ -392,7 +381,10 @@ def extract_numerical_values_with_ranges(value: str) -> Union[str, Any]:
     """
     if pd.isna(value) or not isinstance(value, str):
         return value
-        
+    
+    if value.lower().strip() in ('nan', 'none', '', 'na', 'n/a'):
+            return np.nan
+
     # Special case for "greater than" or "less than" indicators
     if any(indicator in value.lower() for indicator in ['≥', '>=', '>', '<', '≤', '<=']):
         # Extract the operator and the number
@@ -435,6 +427,7 @@ def clean_and_convert_values(input_df: pd.DataFrame, cast_numeric_columns: bool 
     - For numerical columns, extract numbers and convert to appropriate type
     - Apply specific standardization for known columns
     - Break Case Size columns into diameter (D) and length (L) components
+    - Filter out rows that only have Voltage and Capacitance values but no other values
     
     Args:
         input_df: DataFrame to clean and convert
@@ -458,9 +451,10 @@ def clean_and_convert_values(input_df: pd.DataFrame, cast_numeric_columns: bool 
         'Case Size Length',
     ]
     
-    placeholder_pattern = r'^(\s*|—|–|-|\.{1,3}|N/?A|n/?a|NA|na)$'
+    placeholder_pattern = r'^(\s*|—|–|-|\.{1,3}|N/?A|n/?a|NA|na|nan)$'
     
     i = 0
+    # While loop to handle the fact that we dynamically add columns as we process them
     while i < len(df.columns):
         col = df.columns[i]
         
@@ -497,6 +491,21 @@ def clean_and_convert_values(input_df: pd.DataFrame, cast_numeric_columns: bool 
                     # Rating is in A not mA
                     df[col] *= 1000
         i += 1
+    
+    # Filter out rows that only have Voltage and Capacitance values but no other values
+    if 'Voltage' in df.columns and 'Capacitance' in df.columns:
+        # Get all columns except Voltage and Capacitance
+        other_cols = [col for col in df.columns if col not in ['Voltage', 'Capacitance']]
+        
+        if other_cols:
+            # Keep rows where at least one other column has a non-NaN value
+            has_other_data = df[other_cols].notna().any(axis=1)
+            df = df[has_other_data | (~df['Voltage'].notna() & ~df['Capacitance'].notna())]
+            
+            # Log how many rows were filtered out
+            removed_count = len(input_df) - len(df)
+            if removed_count > 0:
+                logger.info(f"Removed {removed_count} rows with only Voltage and Capacitance values")
     
     return df
 
@@ -594,7 +603,7 @@ def parse_and_standardize_file(input_path: str) -> Optional[FileInfo]:
     df = make_column_names_unique(df)
     
     mapped_headers = list(df.columns)
-    if series_name.lower() == 'ky':
+    if series_name.lower() == 'rjf':
         pass
     df = clean_and_convert_values(df)
     logger.debug(f"After standardizing values: {list(df.columns)}")
@@ -896,10 +905,6 @@ def merge_ratings_with_frequency(ratings_df: pd.DataFrame, frequency_df: pd.Data
         on=cols_to_join if cols_to_join else None,
         how='left' if cols_to_join else 'cross'
     )
-
-    # High frequency calculation at (with automatic coefficient application)
-    merged_df = calculate_esr_from_dissipation(merged_df, frequency=100_000.0)
-    merged_df = calculate_esr_from_dissipation(merged_df, frequency=10_000.0)
     return merged_df
 
 def process_series_tables_by_type(file_infos: List[FileInfo]) -> List[FileInfo]:
@@ -958,8 +963,7 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
         'Voltage'
         , 'Capacitance'
         , 'ESR(est.) 20°C@20Hz'
-        , 'ESR(est.) 20°C@10kHz'
-        , 'ESR(est.) 20°C@100kHz'
+        , 'Dissipation Factor'
         , 'ESR 20°C@100kHz'
         , 'Impedance 20°C@100kHz'
         , 'Case Size Diameter'
@@ -1045,11 +1049,13 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
         , 'Manufacturer'
         , 'Capacitance'
         , 'Voltage'
+        , 'ESR(est.) 20°C@120Hz'
+        , 'Dissipation Factor'
         , 'ESR/Z 20°C@100kHz'
         , 'Ripple Current @120Hz'
         , 'Ripple Current @1kHz'
         , 'Ripple Current @10kHz'
-        ,'Ripple Current @100kHz'
+        , 'Ripple Current @100kHz'
         , 'Case Size Diameter'
         , 'Case Size Length'
         ]
@@ -1062,7 +1068,8 @@ def save_processed_files(file_infos: List[FileInfo], output_dir: str) -> None:
     consolidated_df = consolidated_df.fillna('')
     
     # Save the original consolidated data
-    consolidated_output_path = output_path / "all_series_priority_data.csv"
+    consolidated_output_path = output_path.parent / "all_series_priority_data.csv"
+    consolidated_df = consolidated_df.drop_duplicates()
     consolidated_df.to_csv(consolidated_output_path, index=False)
     logger.info(f"Saved consolidated priority data to {consolidated_output_path}")
         
@@ -1096,8 +1103,8 @@ def main():
     print("Saving processed data...")
     save_processed_files(processed_file_infos, output_dir)
     
-    # Step 5: Generate reports
-    generate_all_reports(file_infos, output_dir, include_header_mapping=False)
+    # # Step 5: Generate reports
+    # generate_all_reports(file_infos, output_dir, include_header_mapping=False)
     
     print("Processing complete!")
 

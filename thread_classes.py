@@ -310,6 +310,10 @@ Please extract the following table:
         - Lead space Taping ✽H
         - Min packaging qty Straight leads
         - Min packaging qty Taping
+For all formats:
+    - Below the Characteristics list table, there are notes about the temp and frequency of some of the ratings.  
+        - Please take those notes and integrate them into the relevant column names.
+    - Additionally, rating context can be found in tables that come before the Characteristics list table (like with the tan value temp and frequency)
 Do not output any other tables.
 """, 
                 TableType.FREQUENCY: frequency_coefficient_prompt

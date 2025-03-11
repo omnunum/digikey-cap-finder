@@ -32,7 +32,7 @@ def build_search_payload(capacitance, config, voltage=None):
                     {"ParameterId": 69, "FilterValues": [{"Id": "411897"}]}
                 ]
             },
-            "ManufacturerFilter": [{"Id": mid} for mid in ["10", "338", "565", "399", "493", "1189"]],
+            "ManufacturerFilter": [{"Id": mid} for mid in ["10", "565", "399", "493", "1189"]],
             "MinimumQuantityAvailable": config.min_quantity,
         },
         "SortOptions": {
@@ -220,14 +220,27 @@ def parse_lifetime_temp(lifetime_text):
 
 def parse_esr(esr_text):
     """
-    Parse the ESR value from a string like "2.5Ohm @ 100kHz" and return a float.
-    Returns None if parsing fails.
+    Parse the ESR value from a string like "2.5 Ohm" or "100 mOhm" and return a float in Ohms.
+    Returns None if no data is available or parsing fails.
+    
+    Common formats:
+      - "0.1 Ohm" -> 0.1 Ohms
+      - "100 mOhm" -> 0.1 Ohms (converts mOhm to Ohm)
     """
-    if esr_text:
-        match = re.search(r"([\d\.]+)\s*Ohm", esr_text)
+    if not esr_text:
+        return None
+    
+    try:
+        # Extract numeric value using regex
+        match = re.search(r"([\d\.]+)", esr_text)
         if match:
-            return float(match.group(1))
-    return None
+            value = float(match.group(1))
+            # Check if it's in mOhm
+            if "mohm" in esr_text.lower():
+                value *= 0.001  # Convert from mOhm to Ohm
+            return value
+    except Exception:
+        return None
 
 def parse_diameter(size_text):
     """Extract the diameter (in mm) from e.g. '0.630\" Dia (16.00mm)' -> 16.0. Returns None if not found."""
