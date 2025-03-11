@@ -29,7 +29,8 @@ def build_search_payload(capacitance, config, voltage=None):
             "ParameterFilterRequest": {
                 "CategoryFilter": {"Id": "58"},
                 "ParameterFilters": [
-                    {"ParameterId": 69, "FilterValues": [{"Id": "411897"}]}
+                    {"ParameterId": 69, "FilterValues": [{"Id": "411897"}]},
+                    {"ParameterId": 16, "FilterValues": [{"Id": "392320"}]}
                 ]
             },
             "ManufacturerFilter": [{"Id": mid} for mid in ["10", "565", "399", "493", "1189"]],
