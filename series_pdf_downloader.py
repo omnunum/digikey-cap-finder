@@ -6,7 +6,7 @@ import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Callable
 
 import pdfplumber
 import PyPDF2
@@ -166,11 +166,96 @@ def find_series_in_catalog(catalog: Catalog):
     
     return list(series_dict.values())
 
+def download_pdf_links(url: str, output_dir: Path, transform_basename: Optional[Callable[[str], str]] = None) -> List[str]:
+    """
+    Extract all links from a PDF and download any PDFs found in those links.
+    
+    Parameters:
+        url: URL of the source PDF to extract links from
+        output_dir: Directory to save downloaded PDFs to
+        transform_basename: Optional function to transform the basename of downloaded files
+        
+    Returns:
+        List of PDF links found
+    """
+    # Ensure output directory exists
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Download the source PDF
+    response = requests.get(url)
+    response.raise_for_status()
+    
+    # Extract base URL for handling relative paths
+    base_url = url.rsplit('/', 1)[0] + '/'
+    
+    pdf_links_set: set[str] = set()
+    
+    # Extract hyperlinks
+    with pdfplumber.open(io.BytesIO(response.content)) as pdf:
+        for page in pdf.pages:
+            if not page.hyperlinks:
+                continue
+            for link in page.hyperlinks:
+                uri = link.get('uri')
+                if not (uri and isinstance(uri, str) and uri.lower().endswith('.pdf')):
+                    continue
+                # Handle relative URLs by combining with base URL
+                if not uri.startswith(('http://', 'https://')):
+                    full_url = base_url + uri
+                else:
+                    full_url = uri
+                pdf_links_set.add(full_url)
+    
+    # Convert to list for downloading
+    pdf_links = list(pdf_links_set)
+    print(f"Found {len(pdf_links)} unique PDF links")
+    
+    # Download each PDF link
+    for link in pdf_links:
+        try:
+            # Get filename from URL
+            filename = link.split('/')[-1]
+            
+            # Apply basename transformation if provided
+            if transform_basename:
+                base_name, extension = os.path.splitext(filename)
+                new_base_name = transform_basename(base_name)
+                output_filename = new_base_name + extension
+            else:
+                output_filename = filename
+                
+            pdf_response = requests.get(link)
+            pdf_response.raise_for_status()
+            
+            # Save to the output directory
+            output_path = output_dir / output_filename
+            with open(output_path, 'wb') as f:
+                f.write(pdf_response.content)
+            print(f"Downloaded: {link} as {output_filename}")
+        except Exception as e:
+            print(f"Failed to download {link}: {e}")
+    
+    return pdf_links
 
 def main():
     """Main function to extract data from Panasonic catalog."""
     # Create output directory if it doesn't exist
-    os.makedirs('series_pdfs', exist_ok=True)
+    output_dir = Path("series_pdfs")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Download PDFs from links in the Nichicon catalog
+    nichicon_catalog_url = "https://www.nichicon.co.jp/english/products/pdf/e-alm_mini_list_c.pdf"
+    print(f"Downloading PDFs from links in {nichicon_catalog_url}")
+    
+    # Nichicon has an older catalog that has links to different PDFs
+    #   instead of having all the series in one file
+    pdf_links = download_pdf_links(
+        nichicon_catalog_url,
+        output_dir / "nichicon",
+        lambda basename: basename.replace('e-', '').upper()
+    )
+    print(f"Found {len(pdf_links)} PDF links")
+    
     catalogs = [
         Catalog(
             name="Nichicon",
@@ -226,7 +311,7 @@ def main():
                     pdf_writer.add_page(pdf_reader.pages[page.page_number - 1])
                 
                 # Save the series PDF
-                output_path = Path(f"series_pdfs") / f"{c.name.lower()}" / f"{s.name}.pdf"
+                output_path = output_dir / f"{c.name.lower()}" / f"{s.name}.pdf"
                 output_path.parent.mkdir(parents=True, exist_ok=True)
                 with open(output_path, 'wb') as output_file:
                     pdf_writer.write(output_file)
