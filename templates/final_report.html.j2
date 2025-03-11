@@ -60,18 +60,36 @@
     /* Fixed column widths */
     col.label         { width: 8%; }
     col.qty           { width: 4%; }
-    col.manuf         { width: 12%; }
-    col.partnum       { width: 20%; }
-    col.cap           { width: 6%; }
-    col.volt          { width: 6%; }
-    col.ripple        { width: 7%; }
-    col.lifetime      { width: 7%; }
-    col.temp          { width: 7%; }
-    col.diam          { width: 7%; }
-    col.height        { width: 7%; }
-    col.price         { width: 6%; }
-    col.composite     { width: 8%; }
+    col.manuf         { width: 9%; }
+    col.series        { width: 4.5%; }
+    col.partnum       { width: 15%; }
+    col.cap           { width: 5%; }
+    col.volt          { width: 5%; }
+    col.ripple        { width: 5%; }
+    col.esr           { width: 5%; }
+    col.lifetime      { width: 5%; }
+    col.temp          { width: 5%; }
+    col.diam          { width: 5%; }
+    col.height        { width: 5%; }
+    col.price         { width: 5%; }
+    col.composite     { width: 5%; }
+    col.optimize      { width: 4%; }
     col.toggle        { width: 4%; }
+    
+    /* Optimization indicator style */
+    .optimize-indicator {
+      font-weight: bold;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+    .optimize-rc {
+      background-color: #d9f2e6;
+      color: #006633;
+    }
+    .optimize-z {
+      background-color: #e6e6ff;
+      color: #000066;
+    }
   </style>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -123,16 +141,19 @@
       <col class="label" />
       <col class="qty" />
       <col class="manuf" />
+      <col class="series" />
       <col class="partnum" />
       <col class="cap" />
       <col class="volt" />
       <col class="ripple" />
+      <col class="esr" />
       <col class="lifetime" />
       <col class="temp" />
       <col class="diam" />
       <col class="height" />
       <col class="price" />
       <col class="composite" />
+      <col class="optimize" />
       <col class="toggle" />
     </colgroup>
     
@@ -141,16 +162,19 @@
         <th>Label(s)</th>
         <th>Qty</th>
         <th>Manufacturer</th>
+        <th>Series</th>
         <th>Part Number</th>
         <th>Cap (µF)</th>
         <th>Volt (V)</th>
         <th>Ripple</th>
+        <th>ESR/Z</th>
         <th>Lifetime (hrs)</th>
         <th>Temp (°C)</th>
         <th>Diam (mm)</th>
         <th>Height (mm)</th>
         <th>Price (USD)</th>
         <th>Composite</th>
+        <th>Opt</th>
         <th></th>
       </tr>
     </thead>
@@ -164,10 +188,12 @@
         </td>
         <td>{{ spec.quantity|int }}</td>
         <td>{{ spec.best.Manufacturer }}</td>
+        <td>{{ spec.best.Series }}</td>
         <td>{{ spec.best['Part Number Link'] | safe }}</td>
         <td>{{ spec.best.Capacitance }}</td>
         <td>{{ spec.best.Voltage }}</td>
         <td>{{ spec.best.Ripple }}</td>
+        <td>{{ spec.best.ESR }}</td>
         <td>{{ spec.best.Lifetime }}</td>
         <td>{{ spec.best.Temp }}</td>
         <td>{{ spec.best.Diameter }}</td>
@@ -175,28 +201,36 @@
         <td>{{ spec.best.Price }}</td>
         <td>{{ spec.best.Composite }}</td>
         <td>
+          <span class="optimize-indicator {% if spec.best.OptimizeFor == 'Ripple' %}optimize-rc{% else %}optimize-z{% endif %}">
+            {{ 'RC' if spec.best.OptimizeFor == 'Ripple' else 'Z' }}
+          </span>
+        </td>
+        <td>
           <button onclick="toggleRunnerUps('ru_{{ loop.index0 }}', this)">⏷</button>
         </td>
       </tr>
       
       <tr id="ru_{{ loop.index0 }}" style="display:none;" data-index="{{ loop.index0 }}">
-        <td colspan="14" style="padding:0; border: none;">
+        <td colspan="17" style="padding:0; border: none;">
           <!-- Runner-ups table -->
           <table class="ru-table">
             <colgroup>
               <col class="label" />
               <col class="qty" />
               <col class="manuf" />
+              <col class="series" />
               <col class="partnum" />
               <col class="cap" />
               <col class="volt" />
               <col class="ripple" />
+              <col class="esr" />
               <col class="lifetime" />
               <col class="temp" />
               <col class="diam" />
               <col class="height" />
               <col class="price" />
               <col class="composite" />
+              <col class="optimize" />
               <col class="toggle" />
             </colgroup>
             
@@ -205,16 +239,19 @@
                 <th></th>
                 <th></th>
                 <th>Manufacturer</th>
+                <th>Series</th>
                 <th>Part Number</th>
                 <th>Cap (µF)</th>
                 <th>Volt (V)</th>
                 <th>Ripple</th>
+                <th>ESR/Z</th>
                 <th>Lifetime (hrs)</th>
                 <th>Temp (°C)</th>
                 <th>Diam (mm)</th>
                 <th>Height (mm)</th>
                 <th>Price (USD)</th>
                 <th>Composite</th>
+                <th>Opt</th>
                 <th></th>
               </tr>
             </thead>
@@ -224,16 +261,23 @@
                 <td></td>
                 <td></td>
                 <td>{{ ru.Manufacturer }}</td>
+                <td>{{ ru.Series }}</td>
                 <td>{{ ru['Part Number Link'] | safe }}</td>
                 <td>{{ ru.Capacitance }}</td>
                 <td>{{ ru.Voltage }}</td>
                 <td>{{ ru.Ripple }}</td>
+                <td>{{ ru.ESR }}</td>
                 <td>{{ ru.Lifetime }}</td>
                 <td>{{ ru.Temp }}</td>
                 <td>{{ ru.Diameter }}</td>
                 <td>{{ ru.Height }}</td>
                 <td>{{ ru.Price }}</td>
                 <td>{{ ru.Composite }}</td>
+                <td>
+                  <span class="optimize-indicator {% if ru.OptimizeFor == 'Ripple' %}optimize-rc{% else %}optimize-z{% endif %}">
+                    {{ 'RC' if ru.OptimizeFor == 'Ripple' else 'Z' }}
+                  </span>
+                </td>
                 <td></td>
               </tr>
             {% endfor %}
