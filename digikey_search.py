@@ -46,6 +46,7 @@ class Config:
     weight_diameter_penalty: float
     weight_voltage: float
     weight_esr: float  # New weight for ESR optimization
+    weight_height: float  # New weight for height/length optimization
     
     allow_merge_with_higher_voltage: bool
     opportunistic_voltage_search: bool
@@ -139,7 +140,7 @@ def read_input_data(input_source: str) -> pd.DataFrame:
         'Reference': 'label',
         'Capacitance µF': 'capacitance',
         'Voltage V': 'voltage',
-        'Size mm': 'diameter',
+        'Diameter mm': 'diameter',
         'Series': 'series',
         'Optimize Replacement For': 'optimize_for'
     }
@@ -229,6 +230,7 @@ def compute_composite_scores(
     - Price
     - Voltage rating
     - Diameter constraints
+    - Height/length (lower is better)
     
     For ripple optimization, high ripple current ratings are prioritized.
     For impedance optimization, low ESR/Z values are prioritized.
@@ -259,6 +261,10 @@ def compute_composite_scores(
         
         diameter_text = get_parameter_value(prod, "Size / Dimension")
         product_diameter = parse_diameter(diameter_text)
+        
+        # Get height/length for scoring
+        height_text = get_parameter_value(prod, "Height - Seated (Max)")
+        product_height = parse_height(height_text)
         
         voltage_text = get_parameter_value(prod, "Voltage - Rated")
         raw_voltage = parse_voltage(voltage_text) if voltage_text else 0.0
@@ -326,6 +332,7 @@ def compute_composite_scores(
             "lifetime": lifetime,
             "temp": temp,
             "product_diameter": product_diameter,
+            "product_height": product_height,  # Store height for scoring
             "unit_price": variation_price,
             "series": series,
             "series_data": best_match
@@ -344,6 +351,11 @@ def compute_composite_scores(
     max_lifetime = max(i["raw_lifetime"] for i in raw_items) or 1
     max_price = max(i["raw_price"] for i in raw_items) or 1
     max_voltage = max(i["raw_voltage"] for i in raw_items) or 1
+    
+    # Calculate max height for normalization
+    height_values = [i["product_height"] for i in raw_items if i["product_height"] is not None and i["product_height"] > 0]
+    max_height = max(height_values) if height_values else 1
+    min_height = min(height_values) if height_values else 1
     
     # Set scoring factors based on optimization preference
     ripple_factor = 1.0 if optimize_for == 'Ripple' else 0.5
@@ -364,6 +376,16 @@ def compute_composite_scores(
         np_ = i["raw_price"] / max_price
         nv = i["raw_voltage"] / max_voltage
         
+        # Height/length is better when lower, so invert the normalization
+        nh = 0
+        if height_values and i["product_height"] is not None and i["product_height"] > 0:
+            # Normalize between 0-1 where 1 is the shortest component (best)
+            height_range = max_height - min_height
+            if height_range > 0:
+                nh = (max_height - i["product_height"]) / height_range
+            else:
+                nh = 1.0  # If all components have the same height
+        
         # Compute composite score
         composite = (
             (config.weight_ripple * ripple_factor) * nr
@@ -371,6 +393,7 @@ def compute_composite_scores(
             + config.weight_lifetime * nl
             - config.weight_price * np_ * quantity_factor
             + config.weight_voltage * nv
+            + config.weight_height * nh  # Add height contribution to score
         )
         
         # Apply diameter penalty if needed
@@ -605,6 +628,7 @@ def main():
         weight_price=1.0,
         weight_lifetime=1.0,
         weight_diameter_penalty=2.0,
+        weight_height=1.0,  # Add weight for height optimization
         weight_voltage=2.0,
         weight_esr=3.0,  # Add weight for ESR optimization
         allow_merge_with_higher_voltage=False,
