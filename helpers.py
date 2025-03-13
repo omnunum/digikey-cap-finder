@@ -6,6 +6,8 @@ import hashlib
 import re
 
 def round_up_to_sigfig(number: float | int, rounded_to: int) -> float | int:
+    if math.isnan(number):
+        return number
     return round(number, rounded_to) if number != int(number) else int(number)
 
 def build_search_payload(capacitance, config, voltage=None):

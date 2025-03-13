@@ -13,7 +13,15 @@ from dataclasses import dataclass
 import pandas as pd
 import pdfplumber
 
-from thread_classes import TableType, ExtractTableThread, CleanTableThread
+from thread_classes import TableType, ExtractTableThread, CleanTableThread, extract_configuration, clean_configuration
+
+
+@dataclass
+class FileInfo:
+    """Information about a processed file, including data and metadata."""
+    dataframe: pd.DataFrame
+    file_type: str
+    file_path: Path
 
 
 def save_dataframes(data: Dict[str, pd.DataFrame], output_path: Path, table_type: TableType) -> None:
@@ -117,7 +125,7 @@ def main():
     # Create output directory
     base_output_dir = Path("series_tables")
     
-    for manufacturer, config in ExtractTableThread.configuration.items():
+    for manufacturer, config in extract_configuration.items():
         # Process each PDF in series_pdfs directory
         pdf_dir = Path(f"series_pdfs/{manufacturer}")
         for pdf_path in pdf_dir.glob("*.pdf"):
@@ -126,8 +134,11 @@ def main():
             output_dir.mkdir(exist_ok=True)
             output_path = output_dir / pdf_path.stem
             
-            # Process each prompt type separately
-            for table_type_enum, prompt in config["prompts"].items():
+            # Process each prompt config
+            for prompt_config in config.prompt_configs:
+                table_type_enum = prompt_config.table_type
+                prompt = prompt_config.prompt
+                
                 # Check if any file with this prefix exists (including marker files)
                 prefix = f"{pdf_path.stem}_{table_type_enum.value}"
                 matching_files = list(output_dir.glob(f"{prefix}*.csv"))
@@ -143,11 +154,14 @@ def main():
                 thread = ExtractTableThread(
                     api_key=api_key,
                     pdf_path=pdf_path,
-                    model=config["model"],
                     user_prompt=prompt,
                     name=f"{manufacturer}_{table_type_enum.value}",
                     max_tokens=8096
                 )
+                if not all(re.search(pattern, thread.load_pdf_text(pdf_path)) for pattern in prompt_config.required_patterns):
+                    print(f"Skipping {pdf_path.name} for {table_type_enum.value}"
+                        , " - required patterns not found: {', '.join(prompt_config.required_patterns)}")
+                    continue
                 
                 # Extract tables
                 response_text = thread.execute()
@@ -165,8 +179,17 @@ def main():
                 print(f"Extracted {len(tables)} table entries")
                 
                 # Skip the rest if we don't need to clean the tables
-                clean_config = CleanTableThread.configuration.get(manufacturer, {})
-                if not clean_config.get("prompts", {}).get(table_type_enum, None):
+                clean_config = clean_configuration.get(manufacturer)
+                
+                # Find matching clean prompt config
+                clean_prompt_config = None
+                if clean_config:
+                    for config in clean_config.prompt_configs:
+                        if config.table_type == table_type_enum:
+                            clean_prompt_config = config
+                            break
+                
+                if not clean_prompt_config:
                     save_dataframes(tables, output_path, table_type_enum)
                     continue
         
@@ -178,8 +201,7 @@ def main():
                         max_tokens=1024,
                         name=f"{manufacturer}_{table_type_enum.value}_{table_name}",
                         table_data=table_data.to_csv(index=False),
-                        model=clean_config["model"],
-                        user_prompt=clean_config["prompts"][table_type_enum],
+                        user_prompt=clean_prompt_config.prompt,
                     ).execute()
                     
                     try:

@@ -26,7 +26,6 @@ BlockParams: TypeAlias = Sequence[Union[TextBlockParam, DocumentBlockParam]]
 class Thread(ABC):
     """Base class for managing a conversation thread with Claude."""
     api_key: str
-    model: ModelType
     user_prompt: str
     name: str
     max_tokens: int
@@ -56,6 +55,12 @@ class Thread(ABC):
     @abstractmethod
     def system_prompt(self) -> str:
         """System prompt to guide Claude's behavior. To be implemented by subclasses."""
+        pass
+
+    @property
+    @abstractmethod
+    def model(self) -> ModelType:
+        """Model to use for the conversation. To be implemented by subclasses."""
         pass
     
     def message_iterator(
