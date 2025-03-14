@@ -267,32 +267,45 @@ def main():
                 r"ALUMINUM ELECTROLYTIC CAPACITORS (([A-Z\-]\s?){3})\s+"
             ]
         ),
-        # Catalog(
-        #     name="Chemi-Con",
-        #     url="https://www.chemi-con.co.jp/products/relatedfiles/capacitor/catalog/al-all-e.pdf",
-        #     new_page_triggers=["MINIATURE ALUMINUM ELECTROLYTIC CAPACITORS"],
-        #     starting_page=150,
-        #     ending_page=239
-        # ),
-        # Catalog(
-        #     name="Panasonic",
-        #     url="https://industrial.panasonic.com/cdbs/www-data/pdf/RDF0000/ast-ind-152839.pdf",
-        #     new_page_triggers=["Aluminum Electrolytic Capacitors", "Radial Lead Type"],
-        #     starting_page=14,
-        # )
-        # , Catalog(
-        #     name="Rubycon",
-        #     url="https://www.rubycon.co.jp/wp-content/uploads/catalog/aluminum-catalog.pdf",
-        #     new_page_triggers=["ＲＡＤＩＡＬ ＬＥＡＤ ＡＬＵＭＩＮＵＭ ＥＬＥＣＴＲＯＬＹＴＩＣ ＣＡＰＡＣＩＴＯＲＳ"],
-        #     starting_page=42,
-        #     ending_page=112
-        # ), Catalog(
-        #     name="Elna",
-        #     url="https://www.elna.co.jp/wp-content/uploads/2024/10/catalog_23-24_e.pdf",
-        #     new_page_triggers=["Aluminum Electrolytic Capacitors"],
-        #     starting_page=85,
-        #     ending_page=122
-        # )
+        Catalog(
+            name="Chemi-Con",
+            url="https://www.chemi-con.co.jp/products/relatedfiles/capacitor/catalog/al-all-e.pdf",
+            new_page_triggers=["MINIATURE ALUMINUM ELECTROLYTIC CAPACITORS"],
+            starting_page=150,
+            ending_page=239
+        ),
+        Catalog(
+            name="Panasonic",
+            url="https://industrial.panasonic.com/cdbs/www-data/pdf/RDF0000/ast-ind-152839.pdf",
+            new_page_triggers=["Aluminum Electrolytic Capacitors", "Radial Lead Type"],
+            starting_page=14,
+        )
+        , Catalog(
+            name="Rubycon",
+            url="https://www.rubycon.co.jp/wp-content/uploads/catalog/aluminum-catalog.pdf",
+            new_page_triggers=["ＲＡＤＩＡＬ ＬＥＡＤ ＡＬＵＭＩＮＵＭ ＥＬＥＣＴＲＯＬＹＴＩＣ ＣＡＰＡＣＩＴＯＲＳ"],
+            starting_page=42,
+            ending_page=112
+        ), 
+        Catalog(
+            name="Elna",
+            url="https://www.elna.co.jp/wp-content/uploads/2024/10/catalog_23-24_e.pdf",
+            new_page_triggers=["Aluminum Electrolytic Capacitors"],
+            starting_page=85,
+            ending_page=122
+        ), 
+        # Elna has an older catalog as well
+        Catalog(
+            name="Elna",
+            url="https://www.elna.co.jp/en/capacitor/pdf/catalog_10_11_e.pdf",
+            new_page_triggers=["MINIATURE ALUMINUM ELECTROLYTIC CAPACITORS"],
+            starting_page=64,
+            ending_page=103,
+            specific_patterns=[
+                r"(([A-Z\d\-]\s?){3})\s+MINIATURE ALUMINUM ELECTROLYTIC CAPACITORS",
+                r"MINIATURE ALUMINUM ELECTROLYTIC CAPACITORS (([A-Z\d\-]\s?){3})\s+"
+            ]
+        ), 
     ]
     for c in catalogs:
         response = requests.get(c.url)
