@@ -2,6 +2,7 @@ import os
 import re
 import requests
 import pandas as pd
+import statistics
 import math
 from dataclasses import dataclass, fields
 from collections import defaultdict
@@ -154,14 +155,14 @@ def read_input_data(input_source: str) -> pd.DataFrame:
         df['optimize_for'] = 'Ripple'  # Default to Ripple optimization
     else:
         df['optimize_for'] = df['optimize_for'].apply(
-            lambda x: 'Impedance' if str(x).upper() == 'IMPEDANCE' else 'Ripple'
+            lambda x: 'Ripple' if str(x).upper() == 'RIPPLE' else 'Impedance'
         )
     
     df['capacitance'] = pd.to_numeric(df['capacitance'], errors='coerce')
     df['voltage'] = pd.to_numeric(df['voltage'], errors='coerce')
     df['diameter'] = pd.to_numeric(df['diameter'], errors='coerce')
     
-    df = df.dropna(subset=['capacitance', 'voltage', 'diameter'])
+    df = df.dropna(subset=['capacitance', 'voltage'])
     
     if df.empty:
         raise ValueError("No valid data in input source after filtering")
@@ -191,7 +192,7 @@ def find_best_series_match(
         return None
         
     # Get the series dictionary - returns empty defaultdict if series doesn't exist
-    series_caps = series_data_map[series]
+    series_caps = series_data_map[series] or series_data_map[f"{series}-a"]
         
     # Only try exact capacitance match
     if not capacitance in series_caps:
@@ -244,7 +245,9 @@ def compute_composite_scores(
         variation_price = get_variation_unit_price(prod)
         if variation_price is None:
             continue
-        
+        series_text = prod.get("Series", {}).get("Name", "")
+        series = series_text.lower() if series_text else ""
+
         # Parse ripple current, focusing on value at high frequency
         hf_text = get_parameter_value(prod, "Ripple Current @ High Frequency")
         ripple_rating, ripple_freq = parse_ripple_hf(hf_text)  # ripple_rating in mA, ripple_freq in kHz
@@ -259,18 +262,8 @@ def compute_composite_scores(
         
         raw_price = variation_price * quantity
         
-        diameter_text = get_parameter_value(prod, "Size / Dimension")
-        product_diameter = parse_diameter(diameter_text)
-        
-        # Get height/length for scoring
-        height_text = get_parameter_value(prod, "Height - Seated (Max)")
-        product_height = parse_height(height_text)
-        
         voltage_text = get_parameter_value(prod, "Voltage - Rated")
         raw_voltage = parse_voltage(voltage_text) if voltage_text else 0.0
-        
-        series_text = prod.get("Series", {}).get("Name", "")
-        series = series_text.lower() if series_text else ""
         
         # Get ESR, impedance and series data - we'll use whichever is available
         esr_text = get_parameter_value(prod, "ESR (Equivalent Series Resistance)")
@@ -297,7 +290,15 @@ def compute_composite_scores(
                 )
                 if best_match and best_match.esr is not None and best_match.esr < float('inf'):
                     series_esr = best_match.esr
-        
+
+        diameter_text = get_parameter_value(prod, "Size / Dimension")
+        if (product_diameter := parse_diameter(diameter_text)) is None and best_match is not None:
+            product_diameter = best_match.diameter
+
+        # Get height/length for scoring
+        height_text = get_parameter_value(prod, "Height - Seated (Max)")
+        product_height = parse_height(height_text)
+
         # Simple OR logic for resistance - use whatever is available
         # For display, we'll store all of them separately
         scoring_resistance = float('inf')
@@ -357,9 +358,14 @@ def compute_composite_scores(
     max_height = max(height_values) if height_values else 1
     min_height = min(height_values) if height_values else 1
     
+    # Calculate max diameter for normalization
+    diameter_values = [i["product_diameter"] for i in raw_items if i["product_diameter"] is not None and i["product_diameter"] > 0]
+    max_diameter = max(diameter_values) if diameter_values else 1
+    med_diameter = statistics.median(diameter_values) if diameter_values else 1
+    
     # Set scoring factors based on optimization preference
-    ripple_factor = 1.0 if optimize_for == 'Ripple' else 0.5
-    impedance_factor = 1.0 if optimize_for == 'Impedance' else 0.5
+    ripple_factor = 0.5 if optimize_for == 'Impedance' and min_resistance > 1 else 1.0
+    impedance_factor = 0.5 if optimize_for == 'Ripple' and max_ripple > 1 else 1.0
     
     scored = []
     for i in raw_items:
@@ -375,6 +381,7 @@ def compute_composite_scores(
         nl = i["raw_lifetime"] / max_lifetime
         np_ = i["raw_price"] / max_price
         nv = i["raw_voltage"] / max_voltage
+        nd = i["product_diameter"] / med_diameter
         
         # Height/length is better when lower, so invert the normalization
         nh = 0
@@ -397,11 +404,14 @@ def compute_composite_scores(
         )
         
         # Apply diameter penalty if needed
-        threshold = source_diameter if tight_fit else source_diameter * 1.25
-        if i["product_diameter"] is not None and i["product_diameter"] > threshold:
-            diff = i["product_diameter"] - threshold
-            composite -= diff * config.weight_diameter_penalty
-        
+        if pd.notna(source_diameter):
+            threshold = source_diameter if tight_fit else source_diameter * 1.25
+            if i["product_diameter"] > threshold:
+                diff = i["product_diameter"] - threshold
+                composite -= diff * config.weight_diameter_penalty
+        else:
+            composite -= (nd - 1) * config.weight_diameter_penalty
+            
         i["composite"] = composite
         scored.append(i)
     
@@ -508,7 +518,7 @@ def search_capacitor(
         
         return {
             "Capacitance": round_up_to_sigfig(capacitance, 1),
-            "Voltage": round_up_to_sigfig(voltage, 1),
+            "Voltage": round_up_to_sigfig(prod_data.get("raw_voltage") , 1),
             "Manufacturer": product.get("Manufacturer", {}).get("Name", "N/A"),
             "Part Number Link": part_link,
             "PartNumber": part_num,
@@ -624,17 +634,17 @@ def main():
         min_quantity=5,
         limit=50,
         lifetime_temp_threshold=85.0,
-        weight_ripple=3.0,
+        weight_ripple=4.0,
         weight_price=1.0,
-        weight_lifetime=1.0,
+        weight_lifetime=0.0,
         weight_diameter_penalty=2.0,
         weight_height=1.0,  # Add weight for height optimization
-        weight_voltage=2.0,
-        weight_esr=3.0,  # Add weight for ESR optimization
+        weight_voltage=0.0,
+        weight_esr=4.0,  # Add weight for ESR optimization
         allow_merge_with_higher_voltage=False,
         opportunistic_voltage_search=True,
         cache_dir=os.path.join(script_dir, "cache"),
-        input_source="https://docs.google.com/spreadsheets/d/17cPtcG3J5juaralesjxz_KZUVDKJV5dGURIf7dJdRtU/edit?usp=sharing",
+        input_source="https://docs.google.com/spreadsheets/d/1u_o3F3DsuI_st5wbrZg4s0t-2rGKzQTaya1uKBjMAqg/edit?usp=sharing",
         series_tables_file=os.path.join(script_dir, "all_series_priority_data.csv"),
         csv_output=os.path.join(script_dir, "digikey_best_caps_final.csv"),
         html_output=os.path.join(script_dir, "digikey_best_caps_final.html")
@@ -645,8 +655,12 @@ def main():
     
     cap_df = read_input_data(config.input_source)
 
-    # Continue with the existing processing
-    grouped = cap_df.groupby(["capacitance", "voltage", "diameter", "tight_fit", "optimize_for"]).agg(
+    # Ensure all groupby columns have valid values to avoid filtering out rows
+    # Generate a modified groupby that can handle NaN values in the groupby operation
+    grouped = cap_df.groupby(
+        ["capacitance", "voltage", "diameter", "tight_fit", "optimize_for"],
+        dropna=False  # Keep NaN values in the grouping
+    ).agg(
         Labels=('label', lambda x: ";".join(sorted(set(x)))),
         Quantity=('label', 'size')
     ).reset_index()
