@@ -19,6 +19,7 @@ from helpers import (
     parse_lifetime_temp,
     parse_diameter,
     parse_height,
+    parse_capacitance,
     round_up_to_sigfig,
     build_search_payload,
     get_supported_voltages_for_cap,
@@ -343,11 +344,28 @@ def compute_composite_scores(
         return []
     
     # Calculate maximums for normalization
-    max_ripple = max(i["raw_ripple"] for i in raw_items) or 1
+    ripple_values = [i["raw_ripple"] for i in raw_items if i["raw_ripple"] is not None]
+    max_ripple = max(ripple_values) or 1
+    med_ripple = statistics.median(ripple_values) or 1
     
     # Collect valid resistance values (excluding infinite values)
     resistance_values = [i["scoring_resistance"] for i in raw_items if i["scoring_resistance"] < float('inf')]
     min_resistance = min(resistance_values) if resistance_values else 1
+
+    mostly_impedance = len(resistance_values) >= 6
+    
+    # Set scoring factors based on optimization preference
+    ripple_factor = 0.5 if optimize_for == 'Impedance' else 1.0
+    
+    # Determine if we should completely ignore impedence when there isn't enough
+    if not mostly_impedance:
+        impedance_factor = 0.0
+    elif optimize_for == 'Impedance':
+        impedance_factor = 1.0
+    else:
+        impedance_factor = 0.25
+
+        
     
     max_lifetime = max(i["raw_lifetime"] for i in raw_items) or 1
     max_price = max(i["raw_price"] for i in raw_items) or 1
@@ -362,10 +380,8 @@ def compute_composite_scores(
     diameter_values = [i["product_diameter"] for i in raw_items if i["product_diameter"] is not None and i["product_diameter"] > 0]
     max_diameter = max(diameter_values) if diameter_values else 1
     med_diameter = statistics.median(diameter_values) if diameter_values else 1
-    
-    # Set scoring factors based on optimization preference
-    ripple_factor = 0.5 if optimize_for == 'Impedance' and min_resistance > 1 else 1.0
-    impedance_factor = 0.5 if optimize_for == 'Ripple' and max_ripple > 1 else 1.0
+    avg_diameter = sum(diameter_values) / len(diameter_values) if diameter_values else 1
+
     
     scored = []
     for i in raw_items:
@@ -381,10 +397,10 @@ def compute_composite_scores(
         nl = i["raw_lifetime"] / max_lifetime
         np_ = i["raw_price"] / max_price
         nv = i["raw_voltage"] / max_voltage
-        nd = i["product_diameter"] / med_diameter
+        nd = i["product_diameter"] / avg_diameter
         
         # Height/length is better when lower, so invert the normalization
-        nh = 0
+        nh = 0.0  # Initialize as float to fix type error
         if height_values and i["product_height"] is not None and i["product_height"] > 0:
             # Normalize between 0-1 where 1 is the shortest component (best)
             height_range = max_height - min_height
@@ -393,26 +409,37 @@ def compute_composite_scores(
             else:
                 nh = 1.0  # If all components have the same height
         
-        # Compute composite score
-        composite = (
-            (config.weight_ripple * ripple_factor) * nr
-            + (config.weight_esr * impedance_factor) * ne  # Use ESR weight for impedance too
-            + config.weight_lifetime * nl
-            - config.weight_price * np_ * quantity_factor
-            + config.weight_voltage * nv
-            + config.weight_height * nh  # Add height contribution to score
-        )
+        # Calculate and store individual weighted score components
+        i["ripple_score"] = (config.weight_ripple * ripple_factor) * nr
+        i["esr_score"] = (config.weight_esr * impedance_factor) * ne
+        i["lifetime_score"] = config.weight_lifetime * nl
+        i["price_score"] = -config.weight_price * np_ * quantity_factor  # Negative since it reduces composite
+        i["voltage_score"] = config.weight_voltage * nv
+        i["height_score"] = config.weight_height * nh
+        i["diameter_score"] = 0.0  # Will be updated if diameter penalty is applied
         
         # Apply diameter penalty if needed
         if pd.notna(source_diameter):
             threshold = source_diameter if tight_fit else source_diameter * 1.25
             if i["product_diameter"] > threshold:
                 diff = i["product_diameter"] - threshold
-                composite -= diff * config.weight_diameter_penalty
+                diameter_penalty = diff * config.weight_diameter_penalty
+                i["diameter_score"] = -diameter_penalty  # Store as negative since it reduces composite
         else:
-            composite -= (nd - 1) * config.weight_diameter_penalty
-            
-        i["composite"] = composite
+            diameter_penalty = (nd - 1) * config.weight_diameter_penalty
+            i["diameter_score"] = -diameter_penalty  # Store as negative since it reduces composite
+        
+        # Compute composite score by summing all individual scores
+        i["composite"] = (
+            i["ripple_score"] + 
+            i["esr_score"] + 
+            i["lifetime_score"] + 
+            i["price_score"] + 
+            i["voltage_score"] + 
+            i["height_score"] + 
+            i["diameter_score"]
+        )
+        
         scored.append(i)
     
     # Sort by composite score (highest first)
@@ -456,92 +483,107 @@ def search_capacitor(
         print(f"No eligible products for {payload['Keywords']}")
         return None
     
-
-    def create_product_dict(prod_data):
-        product = prod_data["prod"]
-        available = product.get("QuantityAvailable")
-        try:
-            available = int(available)
-        except (ValueError, TypeError):
-            return
-        if available < quantity:
-            return
-
-        # ensure product has at least one single MOQ variation
-        part_num = product.get("ManufacturerProductNumber", "N/A")
-        for variation in product["ProductVariations"]:
-            if variation.get("MinimumOrderQuantity") == 1:
-                part_num = variation.get("DigiKeyProductNumber", part_num)
-                break
-        else:
-            return
-        
-        diam_text = get_parameter_value(product, "Size / Dimension")
-        ht_text = get_parameter_value(product, "Height - Seated (Max)")
-        diam = parse_diameter(diam_text)
-        height = parse_height(ht_text)
-        
-        product_url = product.get("ProductUrl", "")        
-        customer_ref = ""
-        if product_url:
-            parts = product_url.rstrip("/").split("/")
-            if parts:
-                customer_ref = parts[-1]
-        part_link = f'<a href="{product_url}" target="_blank">{part_num}</a>' if product_url else part_num
-        
-        # Format ripple rating with frequency
-        ripple_rating = int(round(prod_data["ripple_rating"]))
-        ripple_freq = int(round(prod_data["ripple_freq"]))
-        ripple_display = f"{ripple_rating}mA\n@{ripple_freq}kHz" if ripple_rating > 0 and ripple_freq > 0 else ""
-        
-        # Get ESR and impedance values
-        esr_rating = prod_data.get("esr_rating") 
-        esr_freq = int(round(prod_data.get("esr_freq", 100)))
-        impedance_rating = prod_data.get("impedance_rating", 0)
-        impedance_freq = int(round(prod_data.get("impedance_freq", 100)))
-        
-        # Build ESR/Z display string
-        esr_parts = []
-        if esr_rating is not None and esr_rating > 0:
-            esr_parts.append(f"ESR: {esr_rating}Ω")
-        if impedance_rating and impedance_rating > 0:
-            esr_parts.append(f"Z: {impedance_rating}mΩ")
-        
-        if esr_parts:
-            # Add frequency to the display if we have any resistance values
-            esr_display = "\n".join(esr_parts)
-            # Use ESR frequency if available, otherwise default to impedance frequency
-            freq = esr_freq if (esr_rating is not None and esr_rating > 0) else impedance_freq
-            esr_display += f"\n@{freq}kHz"
-        else:
-            esr_display = ""
-        
-        return {
-            "Capacitance": round_up_to_sigfig(capacitance, 1),
-            "Voltage": round_up_to_sigfig(prod_data.get("raw_voltage") , 1),
-            "Manufacturer": product.get("Manufacturer", {}).get("Name", "N/A"),
-            "Part Number Link": part_link,
-            "PartNumber": part_num,
-            "CustomerReference": customer_ref,
-            "Ripple": ripple_display,
-            "ESR": esr_display,
-            "Lifetime": int(round(prod_data["lifetime"])),
-            "Temp": int(round(prod_data["temp"])),
-            "Diameter": round(diam, 2) if diam else "",
-            "Height": round(height, 2) if height else "",
-            "Price": round(prod_data["unit_price"], 2),
-            "Composite": round(prod_data["composite"], 2),
-            "OptimizeFor": optimize_for,
-            "Series": prod_data.get("series", "").upper()
-        }
-    
     formatted_products = [
-        pdict
+        create_product_dict(p, capacitance, quantity, '', optimize_for)
         for p in scored 
-        if (pdict := create_product_dict(p)) is not None
+        if create_product_dict(p, capacitance, quantity, '', optimize_for) is not None
     ]
 
     return formatted_products
+
+def create_product_dict(prod_data, capacitance, quantity, customer_ref='', optimize_for='Ripple'):
+    product = prod_data["prod"]
+    available = product.get("QuantityAvailable")
+    try:
+        available = int(available)
+    except (ValueError, TypeError):
+        return None
+    if available < quantity:
+        return None
+
+    # ensure product has at least one single MOQ variation
+    part_num = product.get("ManufacturerProductNumber", "N/A")
+    for variation in product["ProductVariations"]:
+        if variation.get("MinimumOrderQuantity") == 1:
+            part_num = variation.get("DigiKeyProductNumber", part_num)
+            break
+    else:
+        return None
+    
+    diam_text = get_parameter_value(product, "Size / Dimension")
+    ht_text = get_parameter_value(product, "Height - Seated (Max)")
+    diam = parse_diameter(diam_text)
+    height = parse_height(ht_text)
+    
+    product_url = product.get("ProductUrl", "")        
+    if product_url and not customer_ref:
+        parts = product_url.rstrip("/").split("/")
+        if parts:
+            customer_ref = parts[-1]
+    part_link = f'<a href="{product_url}" target="_blank">{part_num}</a>' if product_url else part_num
+    
+    # Format ripple rating with frequency
+    ripple_rating = int(round(prod_data["ripple_rating"]))
+    ripple_freq = int(round(prod_data["ripple_freq"]))
+    ripple_display = f"{ripple_rating}mA\n@{ripple_freq}kHz" if ripple_rating > 0 and ripple_freq > 0 else ""
+    
+    # Get ESR and impedance values
+    esr_rating = prod_data.get("esr_rating") 
+    esr_freq = int(round(prod_data.get("esr_freq", 100)))
+    impedance_rating = prod_data.get("impedance_rating", 0)
+    impedance_freq = int(round(prod_data.get("impedance_freq", 100)))
+    
+    # Build ESR/Z display string
+    esr_parts = []
+    if esr_rating is not None and esr_rating > 0:
+        esr_parts.append(f"ESR: {esr_rating}Ω")
+    if impedance_rating and impedance_rating > 0:
+        esr_parts.append(f"Z: {impedance_rating}mΩ")
+    
+    if esr_parts:
+        # Add frequency to the display if we have any resistance values
+        esr_display = "\n".join(esr_parts)
+        # Use ESR frequency if available, otherwise default to impedance frequency
+        freq = esr_freq if (esr_rating is not None and esr_rating > 0) else impedance_freq
+        esr_display += f"\n@{freq}kHz"
+    else:
+        esr_display = ""
+    
+    # Include individual score components for the expandable columns
+    ripple_score = round(prod_data.get('ripple_score', 0), 2)
+    esr_score = round(prod_data.get('esr_score', 0), 2)
+    lifetime_score = round(prod_data.get('lifetime_score', 0), 2)
+    price_score = round(prod_data.get('price_score', 0), 2)
+    voltage_score = round(prod_data.get('voltage_score', 0), 2)
+    height_score = round(prod_data.get('height_score', 0), 2)
+    diameter_score = round(prod_data.get('diameter_score', 0), 2)
+    composite_score = round(prod_data['composite'], 2)
+    
+    return {
+        "Capacitance": round_up_to_sigfig(capacitance, 1),
+        "Voltage": round_up_to_sigfig(prod_data.get("raw_voltage") , 1),
+        "Manufacturer": product.get("Manufacturer", {}).get("Name", "N/A"),
+        "Part Number Link": part_link,
+        "PartNumber": part_num,
+        "CustomerReference": customer_ref,
+        "Ripple": ripple_display,
+        "ESR": esr_display,
+        "Lifetime": int(round(prod_data["lifetime"])),
+        "Temp": int(round(prod_data["temp"])),
+        "Diameter": round(diam, 2) if diam else "",
+        "Height": round(height, 2) if height else "",
+        "Price": round(prod_data["unit_price"], 2),
+        "Composite": composite_score,
+        "OptimizeFor": optimize_for,
+        "Series": prod_data.get("series", "").upper(),
+        "RippleScore": ripple_score,
+        "ESRScore": esr_score,
+        "LifetimeScore": lifetime_score,
+        "PriceScore": price_score,
+        "VoltageScore": voltage_score,
+        "HeightScore": height_score,
+        "DiameterScore": diameter_score
+    }
 
 def merge_with_higher_voltage(specs_data):
     from collections import defaultdict
@@ -635,10 +677,10 @@ def main():
         limit=50,
         lifetime_temp_threshold=85.0,
         weight_ripple=4.0,
-        weight_price=1.0,
-        weight_lifetime=0.0,
-        weight_diameter_penalty=2.0,
-        weight_height=1.0,  # Add weight for height optimization
+        weight_price=3.0,
+        weight_lifetime=0.5,
+        weight_diameter_penalty=2.5,
+        weight_height=1.5,  # Add weight for height optimization
         weight_voltage=0.0,
         weight_esr=4.0,  # Add weight for ESR optimization
         allow_merge_with_higher_voltage=False,
@@ -706,15 +748,45 @@ def main():
             supported = cap_to_voltages.get(cap, [])
             next_voltages = get_n_next_voltages_for_cap(cap, volt, 2, supported)
             candidate_voltages = [volt] + next_voltages
-            all_candidates = []
+            
+            # First gather all products across different voltages
+            all_products = []
             for cand in candidate_voltages:
-                out = search_capacitor(
-                    cap, cand, src_dia, cached_request, config, 
-                    qty, tight_fit, optimize_for, series_data_map
+                payload = build_search_payload(cap, config, voltage=cand)
+                try:
+                    data = cached_request(payload)
+                    products = data.get("Products", [])
+                    if products:
+                        all_products.extend(products)
+                except requests.HTTPError as e:
+                    print(f"Error requesting data for {payload['Keywords']}: {e}")
+            
+            if all_products:
+                desired_capacitance_products = [
+                    p for p in all_products 
+                    if float(parse_capacitance(get_parameter_value(p, "Capacitance"))) >= cap
+                ]
+                # Score all products together in a single batch
+                scored = compute_composite_scores(
+                    desired_capacitance_products, config, src_dia
+                    , qty, tight_fit, optimize_for, series_data_map
                 )
-                if out is not None:
-                    all_candidates.extend(out)
-            if not all_candidates:
+                all_candidates = [
+                    create_product_dict(p, cap, qty, labels, optimize_for)
+                    for p in scored
+                    if create_product_dict(p, cap, qty, labels, optimize_for) is not None
+                ]
+                
+                if all_candidates:
+                    # Sort by composite score (highest first)
+                    all_candidates.sort(key=lambda x: x["Composite"], reverse=True)
+                    best_item = all_candidates[0]
+                    runner_ups = all_candidates[1:11]
+                else:
+                    # Fall back to original approach if no products met criteria
+                    continue
+            else:
+                # Fall back to original approach if no products found
                 while (out := search_capacitor(
                     cap, volt, src_dia, cached_request, config, 
                     qty, tight_fit, optimize_for, series_data_map
@@ -724,11 +796,10 @@ def main():
                     if not next_vs:
                         break
                     volt = next_vs[0]
-                all_candidates.extend(out)
-            all_candidates.sort(key=lambda x: x["Composite"], reverse=True)
-            best_item = all_candidates[0]
-            runner_ups = all_candidates[1:11]
+                best_item = out[0]
+                runner_ups = out[1:11]
         else:
+            # Original approach for non-opportunistic search
             while (out := search_capacitor(
                 cap, volt, src_dia, cached_request, config, 
                 qty, tight_fit, optimize_for, series_data_map
@@ -740,10 +811,6 @@ def main():
                 volt = next_vs[0]
             best_item = out[0]
             runner_ups = out[1:11]
-        
-        best_item["Quantity"] = qty
-        best_item["CustomerReference"] = labels
-        best_item["OptimizeFor"] = optimize_for
         
         specs_data.append({
             "best": best_item,
