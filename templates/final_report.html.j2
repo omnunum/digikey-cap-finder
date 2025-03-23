@@ -72,7 +72,8 @@
     col.diam          { width: 5%; }
     col.height        { width: 5%; }
     col.price         { width: 5%; }
-    col.composite     { width: 5%; }
+    col.score         { width: 5%; }
+    col.score_comp    { width: 5%; }
     col.optimize      { width: 4%; }
     col.toggle        { width: 4%; }
     
@@ -89,6 +90,29 @@
     .optimize-z {
       background-color: #e6e6ff;
       color: #000066;
+    }
+    
+    /* Score component columns toggling */
+    .score-components {
+      display: none;
+    }
+    
+    .toggle-score {
+      cursor: pointer;
+      display: inline-block;
+      margin-left: 5px;
+      width: 16px;
+      height: 16px;
+      line-height: 16px;
+      text-align: center;
+      background-color: #f0f0f0;
+      border-radius: 3px;
+      font-weight: bold;
+      font-size: 10px;
+    }
+    
+    .toggle-score:hover {
+      background-color: #e0e0e0;
     }
   </style>
   <script>
@@ -125,6 +149,22 @@
         });
       }
     }
+    
+    function toggleScoreColumns() {
+      const scoreColumns = document.querySelectorAll('.score-components');
+      const isVisible = scoreColumns[0].style.display !== 'none';
+      
+      scoreColumns.forEach(function(col) {
+        col.style.display = isVisible ? 'none' : 'table-cell';
+      });
+      
+      // Update all toggle buttons
+      const toggleBtns = document.querySelectorAll('.toggle-score');
+      toggleBtns.forEach(function(btn) {
+        btn.innerHTML = isVisible ? "+" : "-";
+      });
+    }
+    
     function toggleBulkOrder() {
       let el = document.getElementById('bulkOrder');
       el.style.display = (el.style.display === 'none' ? 'block' : 'none');
@@ -152,7 +192,14 @@
       <col class="diam" />
       <col class="height" />
       <col class="price" />
-      <col class="composite" />
+      <col class="score" />
+      <col class="score_comp" />
+      <col class="score_comp" />
+      <col class="score_comp" />
+      <col class="score_comp" />
+      <col class="score_comp" />
+      <col class="score_comp" />
+      <col class="score_comp" />
       <col class="optimize" />
       <col class="toggle" />
     </colgroup>
@@ -173,7 +220,14 @@
         <th>Diam (mm)</th>
         <th>Height (mm)</th>
         <th>Price (USD)</th>
-        <th>Composite</th>
+        <th>Score <span class="toggle-score" onclick="toggleScoreColumns()">+</span></th>
+        <th class="score-components">Ripple</th>
+        <th class="score-components">ESR/Z</th>
+        <th class="score-components">Lifetime</th>
+        <th class="score-components">Price</th>
+        <th class="score-components">Voltage</th>
+        <th class="score-components">Height</th>
+        <th class="score-components">Diameter</th>
         <th>Opt</th>
         <th></th>
       </tr>
@@ -200,6 +254,13 @@
         <td>{{ spec.best.Height }}</td>
         <td>{{ spec.best.Price }}</td>
         <td>{{ spec.best.Composite }}</td>
+        <td class="score-components">{{ spec.best.RippleScore }}</td>
+        <td class="score-components">{{ spec.best.ESRScore }}</td>
+        <td class="score-components">{{ spec.best.LifetimeScore }}</td>
+        <td class="score-components">{{ spec.best.PriceScore }}</td>
+        <td class="score-components">{{ spec.best.VoltageScore }}</td>
+        <td class="score-components">{{ spec.best.HeightScore }}</td>
+        <td class="score-components">{{ spec.best.DiameterScore }}</td>
         <td>
           <span class="optimize-indicator {% if spec.best.OptimizeFor == 'Ripple' %}optimize-rc{% else %}optimize-z{% endif %}">
             {{ 'RC' if spec.best.OptimizeFor == 'Ripple' else 'Z' }}
@@ -211,7 +272,7 @@
       </tr>
       
       <tr id="ru_{{ loop.index0 }}" style="display:none;" data-index="{{ loop.index0 }}">
-        <td colspan="17" style="padding:0; border: none;">
+        <td colspan="24" style="padding:0; border: none;">
           <!-- Runner-ups table -->
           <table class="ru-table">
             <colgroup>
@@ -229,7 +290,14 @@
               <col class="diam" />
               <col class="height" />
               <col class="price" />
-              <col class="composite" />
+              <col class="score" />
+              <col class="score_comp" />
+              <col class="score_comp" />
+              <col class="score_comp" />
+              <col class="score_comp" />
+              <col class="score_comp" />
+              <col class="score_comp" />
+              <col class="score_comp" />
               <col class="optimize" />
               <col class="toggle" />
             </colgroup>
@@ -250,7 +318,14 @@
                 <th>Diam (mm)</th>
                 <th>Height (mm)</th>
                 <th>Price (USD)</th>
-                <th>Composite</th>
+                <th>Score <span class="toggle-score" onclick="toggleScoreColumns()">+</span></th>
+                <th class="score-components">Ripple</th>
+                <th class="score-components">ESR/Z</th>
+                <th class="score-components">Lifetime</th>
+                <th class="score-components">Price</th>
+                <th class="score-components">Voltage</th>
+                <th class="score-components">Height</th>
+                <th class="score-components">Diameter</th>
                 <th>Opt</th>
                 <th></th>
               </tr>
@@ -273,6 +348,13 @@
                 <td>{{ ru.Height }}</td>
                 <td>{{ ru.Price }}</td>
                 <td>{{ ru.Composite }}</td>
+                <td class="score-components">{{ ru.RippleScore }}</td>
+                <td class="score-components">{{ ru.ESRScore }}</td>
+                <td class="score-components">{{ ru.LifetimeScore }}</td>
+                <td class="score-components">{{ ru.PriceScore }}</td>
+                <td class="score-components">{{ ru.VoltageScore }}</td>
+                <td class="score-components">{{ ru.HeightScore }}</td>
+                <td class="score-components">{{ ru.DiameterScore }}</td>
                 <td>
                   <span class="optimize-indicator {% if ru.OptimizeFor == 'Ripple' %}optimize-rc{% else %}optimize-z{% endif %}">
                     {{ 'RC' if ru.OptimizeFor == 'Ripple' else 'Z' }}
